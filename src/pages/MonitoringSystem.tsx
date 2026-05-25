@@ -19,7 +19,7 @@ import {
     CircularProgress,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Filter, Save, Settings, Calendar } from "lucide-react";
+import { BarChart3, Plus, Download, Search, Save, Settings, Calendar } from "lucide-react";
 
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
