@@ -10,8 +10,8 @@ export type InstitutionStatus =
 export interface Activity {
   name: string;
   responsible: string;
-  startDate: string;
-  endDate: string;
+  start_date: string;
+  end_date: string;
   status: ActivityStatus;
 }
 

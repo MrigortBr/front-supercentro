@@ -21,11 +21,12 @@ import StatusChip from './StatusChip';
 
 interface InstitutionCardProps {
   institution: Institution;
+  onView: (institution: Institution) => void;
   onEdit: (institution: Institution) => void;
   onDelete: (id: number) => void;
 }
 
-export default function InstitutionCard({ institution, onEdit, onDelete }: InstitutionCardProps) {
+export default function InstitutionCard({ institution, onView, onEdit, onDelete }: InstitutionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const activityStatusColors: Record<string, { bg: string; color: string }> = {
@@ -36,13 +37,13 @@ export default function InstitutionCard({ institution, onEdit, onDelete }: Insti
   };
 
   return (
-    <Card sx={{ overflow: 'hidden' }}>
+    <Card onClick={() => onView(institution)} sx={{ overflow: 'hidden', cursor: 'pointer', '&:hover': { boxShadow: 4 } }}>
       {/* Card Header */}
       <Box sx={{ p: '1.25rem', bgcolor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <IconButton
             size="small"
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={(e) => { e.stopPropagation(); setIsExpanded(!isExpanded); }}
             sx={{ color: '#666', '&:hover': { color: 'primary.main' } }}
           >
             {isExpanded ? <ChevronDown size={18} /> : <ChevronRight size={18} />}
@@ -61,7 +62,7 @@ export default function InstitutionCard({ institution, onEdit, onDelete }: Insti
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
           <IconButton
             size="small"
-            onClick={() => onEdit(institution)}
+            onClick={(e) => { e.stopPropagation(); onEdit(institution); }}
             sx={{
               border: '1px solid #dee2e6',
               borderRadius: 1,
@@ -74,7 +75,7 @@ export default function InstitutionCard({ institution, onEdit, onDelete }: Insti
           </IconButton>
           <IconButton
             size="small"
-            onClick={() => onDelete(institution.id)}
+            onClick={(e) => { e.stopPropagation(); onDelete(institution.id); }}
             sx={{
               border: '1px solid #dee2e6',
               borderRadius: 1,
@@ -166,12 +167,12 @@ export default function InstitutionCard({ institution, onEdit, onDelete }: Insti
                         </Typography>
                       )}
 
-                      {activity.startDate && activity.endDate && (
+                      {activity.start_date && activity.end_date && (
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, color: 'primary.main' }}>
                           <Calendar size={12} />
                           <Typography variant="caption" sx={{ color: 'primary.main' }}>
-                            {new Date(activity.startDate).toLocaleDateString('pt-BR')} até{' '}
-                            {new Date(activity.endDate).toLocaleDateString('pt-BR')}
+                            {new Date(activity.start_date).toLocaleDateString('pt-BR')} até{' '}
+                            {new Date(activity.end_date).toLocaleDateString('pt-BR')}
                           </Typography>
                         </Box>
                       )}

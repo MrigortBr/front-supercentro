@@ -18,20 +18,22 @@ import {
   Chip,
   Divider,
 } from '@mui/material';
-import { Plus, Trash2, Calendar, X } from 'lucide-react';
+import { Plus, Pencil, Trash2, Calendar, X } from 'lucide-react';
 import { Institution, Activity, InstitutionStatus, ActivityStatus } from '../types';
 
 interface InstitutionFormProps {
   institution: Institution | null;
   onSave: (data: Omit<Institution, 'id'>) => void;
   onCancel: () => void;
+  onEdit?: () => void;
+  readOnly?: boolean;
 }
 
 const STATUS_OPTIONS: InstitutionStatus[] = ['Não iniciado', 'Em andamento', 'Concluído', 'Atrasado', 'Pendente'];
 const ACTIVITY_STATUS_OPTIONS: ActivityStatus[] = ['Projetado', 'Em andamento', 'Concluído'];
-const BRAZIL_STATES = ['AC','AL','AM','AP','BA','CE','DF','ES','GO','MA','MG','MS','MT','PA','PB','PE','PI','PR','RJ','RN','RO','RR','RS','SC','SE','SP','TO'];
+const BRAZIL_STATES = ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO'];
 
-const emptyActivity: Activity = { name: '', responsible: '', startDate: '', endDate: '', status: 'Projetado' };
+const emptyActivity: Activity = { name: '', responsible: '', start_date: '', end_date: '', status: 'Projetado' };
 
 const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }> = {
   'Concluído': { bg: '#168821', color: '#fff' },
@@ -40,13 +42,29 @@ const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }
   'Planejado': { bg: '#FF8C00', color: '#fff' },
 };
 
-export default function InstitutionForm({ institution, onSave, onCancel }: InstitutionFormProps) {
+export default function InstitutionForm({ institution, onSave, onCancel, onEdit, readOnly = false }: InstitutionFormProps) {
   const [formData, setFormData] = useState<Omit<Institution, 'id'>>(
     institution
       ? { ...institution }
       : { name: '', state: '', responsible: '', status: 'Não iniciado', observations: '', activities: [] }
   );
   const [newActivity, setNewActivity] = useState<Activity>({ ...emptyActivity });
+  const [editingActivityIdx, setEditingActivityIdx] = useState<number | null>(null);
+  const [editingActivityData, setEditingActivityData] = useState<Activity>({ ...emptyActivity });
+
+  const startEditActivity = (idx: number) => {
+    setEditingActivityIdx(idx);
+    setEditingActivityData({ ...formData.activities[idx] });
+  };
+
+  const saveEditActivity = () => {
+    if (editingActivityIdx === null) return;
+    setFormData((prev) => ({
+      ...prev,
+      activities: prev.activities.map((a, i) => i === editingActivityIdx ? { ...editingActivityData } : a),
+    }));
+    setEditingActivityIdx(null);
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -80,7 +98,7 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
         }}
       >
         <Typography variant="h2" sx={{ color: 'primary.main', fontSize: '1.5rem' }}>
-          {institution ? 'Editar Instituição' : 'Nova Instituição'}
+          {readOnly ? 'Detalhes da Instituição' : institution ? 'Editar Instituição' : 'Nova Instituição'}
         </Typography>
         <IconButton onClick={onCancel} size="small" sx={{ color: '#666' }}>
           <X size={20} />
@@ -98,13 +116,14 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
               placeholder="Ex: FCECON – Manaus"
               required
+              disabled={readOnly}
             />
           </Box>
 
           {/* State + Status row */}
           <Grid container spacing={2} sx={{ mb: 2.5 }}>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth size="small" required>
+              <FormControl fullWidth size="small" required disabled={readOnly}>
                 <InputLabel>Estado</InputLabel>
                 <Select
                   label="Estado"
@@ -119,7 +138,7 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
               </FormControl>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <FormControl fullWidth size="small" required>
+              <FormControl fullWidth size="small" required disabled={readOnly}>
                 <InputLabel>Status</InputLabel>
                 <Select
                   label="Status"
@@ -142,6 +161,7 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
               value={formData.responsible}
               onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
               placeholder="Ex: ACC"
+              disabled={readOnly}
             />
           </Box>
 
@@ -155,6 +175,7 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
               value={formData.observations}
               onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
               placeholder="Informações adicionais..."
+              disabled={readOnly}
             />
           </Box>
 
@@ -169,6 +190,47 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 2 }}>
                 {formData.activities.map((activity, idx) => {
                   const colors = activityStatusColors[activity.status] || { bg: '#1351B4', color: '#fff' };
+                  const isEditing = editingActivityIdx === idx;
+
+                  if (!readOnly && isEditing) {
+                    return (
+                      <Box key={idx} sx={{ bgcolor: 'white', p: 1.5, borderRadius: 1, border: '1px solid #1351B4', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                        <Grid container spacing={1.5}>
+                          <Grid item xs={12} sm={8}>
+                            <TextField size="small" fullWidth placeholder="Nome da atividade *" value={editingActivityData.name} onChange={(e) => setEditingActivityData({ ...editingActivityData, name: e.target.value })} />
+                          </Grid>
+                          <Grid item xs={12} sm={4}>
+                            <TextField size="small" fullWidth placeholder="Responsável" value={editingActivityData.responsible} onChange={(e) => setEditingActivityData({ ...editingActivityData, responsible: e.target.value })} />
+                          </Grid>
+                        </Grid>
+                        <Grid container spacing={1.5} alignItems="flex-end">
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#666', mb: 0.5, fontWeight: 500 }}>Data Início</Typography>
+                            <TextField size="small" fullWidth type="date" value={editingActivityData.start_date} onChange={(e) => setEditingActivityData({ ...editingActivityData, start_date: e.target.value })} InputLabelProps={{ shrink: true }} />
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#666', mb: 0.5, fontWeight: 500 }}>Data Fim</Typography>
+                            <TextField size="small" fullWidth type="date" value={editingActivityData.end_date} onChange={(e) => setEditingActivityData({ ...editingActivityData, end_date: e.target.value })} InputLabelProps={{ shrink: true }} />
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <Typography variant="caption" sx={{ display: 'block', color: '#666', mb: 0.5, fontWeight: 500 }}>Status</Typography>
+                            <FormControl fullWidth size="small">
+                              <Select value={editingActivityData.status} onChange={(e) => setEditingActivityData({ ...editingActivityData, status: e.target.value as ActivityStatus })}>
+                                {ACTIVITY_STATUS_OPTIONS.map((s) => <MenuItem key={s} value={s}>{s}</MenuItem>)}
+                              </Select>
+                            </FormControl>
+                          </Grid>
+                          <Grid item xs={12} sm={3}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button variant="outlined" fullWidth onClick={() => setEditingActivityIdx(null)} sx={{ height: 40 }}>Cancelar</Button>
+                              <Button variant="contained" fullWidth onClick={saveEditActivity} sx={{ height: 40 }}>Salvar</Button>
+                            </Box>
+                          </Grid>
+                        </Grid>
+                      </Box>
+                    );
+                  }
+
                   return (
                     <Box
                       key={idx}
@@ -207,41 +269,45 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
                               sx={{ bgcolor: '#e7f1ff', color: '#1351B4', fontSize: '0.65rem', height: 20 }}
                             />
                           )}
-                          {activity.startDate && activity.endDate && (
+                          {activity.start_date && activity.end_date && (
                             <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, bgcolor: '#f0fdf4', color: '#168821', px: 0.75, py: 0.25, borderRadius: 1 }}>
                               <Calendar size={11} />
                               <Typography variant="caption" sx={{ color: '#168821', fontSize: '0.65rem' }}>
-                                {new Date(activity.startDate).toLocaleDateString('pt-BR')} –{' '}
-                                {new Date(activity.endDate).toLocaleDateString('pt-BR')}
+                                {new Date(activity.start_date).toLocaleDateString('pt-BR')} –{' '}
+                                {new Date(activity.end_date).toLocaleDateString('pt-BR')}
                               </Typography>
                             </Box>
                           )}
                         </Box>
                       </Box>
-                      <IconButton
-                        size="small"
-                        onClick={() => removeActivity(idx)}
-                        sx={{
-                          bgcolor: '#ffe5e5',
-                          border: '1px solid #E52207',
-                          color: 'error.main',
-                          borderRadius: 1,
-                          flexShrink: 0,
-                          '&:hover': { bgcolor: '#ffcccc' },
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </IconButton>
+                      {!readOnly && (
+                        <Box sx={{ display: 'flex', gap: 0.5, flexShrink: 0 }}>
+                          <IconButton
+                            size="small"
+                            onClick={() => startEditActivity(idx)}
+                            sx={{ bgcolor: '#e7f1ff', border: '1px solid #1351B4', color: 'primary.main', borderRadius: 1, '&:hover': { bgcolor: '#cce0ff' } }}
+                          >
+                            <Pencil size={14} />
+                          </IconButton>
+                          <IconButton
+                            size="small"
+                            onClick={() => removeActivity(idx)}
+                            sx={{ bgcolor: '#ffe5e5', border: '1px solid #E52207', color: 'error.main', borderRadius: 1, '&:hover': { bgcolor: '#ffcccc' } }}
+                          >
+                            <Trash2 size={14} />
+                          </IconButton>
+                        </Box>
+                      )}
                     </Box>
                   );
                 })}
               </Box>
             )}
 
-            <Divider sx={{ my: 2 }} />
+            {!readOnly && <Divider sx={{ my: 2 }} />}
 
             {/* Add new activity */}
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            {!readOnly && <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Grid container spacing={1.5}>
                 <Grid item xs={12} sm={8}>
                   <TextField
@@ -272,8 +338,8 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
                     size="small"
                     fullWidth
                     type="date"
-                    value={newActivity.startDate}
-                    onChange={(e) => setNewActivity({ ...newActivity, startDate: e.target.value })}
+                    value={newActivity.start_date}
+                    onChange={(e) => setNewActivity({ ...newActivity, start_date: e.target.value })}
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
@@ -285,8 +351,8 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
                     size="small"
                     fullWidth
                     type="date"
-                    value={newActivity.endDate}
-                    onChange={(e) => setNewActivity({ ...newActivity, endDate: e.target.value })}
+                    value={newActivity.end_date}
+                    onChange={(e) => setNewActivity({ ...newActivity, end_date: e.target.value })}
                     InputLabelProps={{ shrink: true }}
                   />
                 </Grid>
@@ -324,17 +390,32 @@ export default function InstitutionForm({ institution, onSave, onCancel }: Insti
                   </Button>
                 </Grid>
               </Grid>
-            </Box>
+            </Box>}
           </Paper>
         </DialogContent>
 
         <DialogActions sx={{ p: 2, borderTop: '1px solid #dee2e6', gap: 1.5 }}>
-          <Button variant="contained" color="inherit" onClick={onCancel} sx={{ bgcolor: '#6c757d', color: 'white', '&:hover': { bgcolor: '#5a6268' } }}>
-            Cancelar
-          </Button>
-          <Button type="submit" variant="contained" color="primary">
-            Salvar
-          </Button>
+          {readOnly ? (
+            <>
+              {onEdit && (
+                <Button variant="contained" color="primary" onClick={onEdit}>
+                  Editar
+                </Button>
+              )}
+              <Button variant="contained" onClick={onCancel} sx={{ bgcolor: '#6c757d', color: 'white', '&:hover': { bgcolor: '#5a6268' } }}>
+                Fechar
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="contained" color="inherit" onClick={onCancel} sx={{ bgcolor: '#6c757d', color: 'white', '&:hover': { bgcolor: '#5a6268' } }}>
+                Cancelar
+              </Button>
+              <Button type="submit" variant="contained" color="primary">
+                Salvar
+              </Button>
+            </>
+          )}
         </DialogActions>
       </form>
     </Dialog>
