@@ -19,6 +19,7 @@ export const initialInstitutions: Institution[] = [
 				status: "Projetado",
 			},
 		],
+		machine: [],
 	},
 	{
 		id: 2,
@@ -31,6 +32,7 @@ export const initialInstitutions: Institution[] = [
 			{ name: "Entrega Scanner", responsible: "ACC", start_date: "2026-05-01", end_date: "2026-05-20", status: "Em andamento" },
 			{ name: "Visita Técnica", responsible: "ACC", start_date: "2026-05-21", end_date: "2026-06-10", status: "Projetado" },
 		],
+		machine: [],
 	},
 	{
 		id: 3,
@@ -43,6 +45,7 @@ export const initialInstitutions: Institution[] = [
 			{ name: "Entrega Scanner", responsible: "ACC", start_date: "2026-04-01", end_date: "2026-04-15", status: "Concluído" },
 			{ name: "Visita Técnica", responsible: "ACC", start_date: "2026-04-16", end_date: "2026-05-10", status: "Em andamento" },
 		],
+		machine: [],
 	},
 	{
 		id: 4,
@@ -52,6 +55,7 @@ export const initialInstitutions: Institution[] = [
 		status: "Concluído",
 		observations: "",
 		activities: [{ name: "Projeto entregue", responsible: "ACC", start_date: "2026-04-01", end_date: "2026-04-30", status: "Concluído" }],
+		machine: [],
 	},
 	{
 		id: 5,
@@ -64,6 +68,7 @@ export const initialInstitutions: Institution[] = [
 			{ name: "Obras de adequação", responsible: "Estado", start_date: "2026-05-01", end_date: "2026-06-30", status: "Em andamento" },
 			{ name: "Instalação de equipamentos", responsible: "ACC", start_date: "2026-07-01", end_date: "2026-08-15", status: "Projetado" },
 		],
+		machine: [],
 	},
 	{
 		id: 6,
@@ -76,6 +81,7 @@ export const initialInstitutions: Institution[] = [
 			{ name: "Obras de adequação", responsible: "Estado", start_date: "2026-04-15", end_date: "2026-05-31", status: "Em andamento" },
 			{ name: "Entrega Scanner", responsible: "ACC", start_date: "2026-06-01", end_date: "2026-06-30", status: "Projetado" },
 		],
+		machine: [],
 	},
 	{
 		id: 7,
@@ -85,6 +91,7 @@ export const initialInstitutions: Institution[] = [
 		status: "Pendente",
 		observations: "Redefinição final em 08/05/2026",
 		activities: [{ name: "Reunião de definição", responsible: "ACC", start_date: "2026-05-08", end_date: "2026-05-08", status: "Projetado" }],
+		machine: [],
 	},
 	{
 		id: 8,
@@ -97,5 +104,6 @@ export const initialInstitutions: Institution[] = [
 			{ name: "Entrega Scanner", responsible: "ACC", start_date: "2026-04-10", end_date: "2026-05-15", status: "Concluído" },
 			{ name: "Capacitação da equipe", responsible: "ACC", start_date: "2026-05-20", end_date: "2026-06-20", status: "Projetado" },
 		],
+		machine: [],
 	},
 ];

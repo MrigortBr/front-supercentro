@@ -1,6 +1,6 @@
 import axios from "axios";
 import { InstituicionListResponse } from "./type";
-import { Institution } from "../types";
+import { Institution, InstitutionPhoto } from "../types";
 
 class Api {
     api;
@@ -29,6 +29,22 @@ class Api {
 
     async deleteInstituicion(id: number) {
         return await this.api.delete(`/instituicion/${id}`);
+    }
+
+    async getPhotos(institutionId: number) {
+        return await this.api.get<InstitutionPhoto[]>(`/photos/${institutionId}`);
+    }
+
+    async uploadPhoto(institutionId: number, file: File) {
+        const formData = new FormData();
+        formData.append("file", file);
+        return await this.api.post(`/photos/${institutionId}`, formData, {
+            headers: { "Content-Type": "multipart/form-data" },
+        });
+    }
+
+    async deletePhoto(photoId: number) {
+        return await this.api.delete(`/photos/${photoId}`);
     }
 }
 

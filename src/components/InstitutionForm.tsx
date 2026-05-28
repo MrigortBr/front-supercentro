@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
     Dialog,
     DialogTitle,
@@ -18,10 +18,12 @@ import {
     Chip,
     Divider,
     Autocomplete,
+    CircularProgress,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, Calendar, X } from "lucide-react";
-import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment } from "../types";
+import { Plus, Pencil, Trash2, Calendar, X, Upload } from "lucide-react";
+import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto } from "../types";
 import { chipColors } from "../data/const";
+import { api } from "../service";
 
 interface InstitutionFormProps {
     institution: Institution | null;
@@ -70,7 +72,7 @@ const emptyEquipament: InstitutionEquipment = {
     id: 0,
     id_instituicion: 0,
     quantidade: 0,
-    simb: "SIMB",
+    simb: "",
     status: "",
     marca: "",
     previsao_entrega: new Date(),
@@ -120,6 +122,78 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [editingActivityData, setEditingActivityData] = useState<Activity>({ ...emptyActivity });
     const [editingMachineData, setEditingMachineData] = useState<InstitutionEquipment>({ ...emptyEquipament });
     const [editingMachineIdx, setEditingMachineDataIdx] = useState<number | null>(null);
+
+    const [photos, setPhotos] = useState<InstitutionPhoto[]>([]);
+    const [loadingPhotos, setLoadingPhotos] = useState(false);
+    const [loadingUpload, setLoadingUpload] = useState(false);
+    const [previewPhoto, setPreviewPhoto] = useState<InstitutionPhoto | null>(null);
+    const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const photoToDataUrl = (photo: InstitutionPhoto): string => {
+        const mt = photo.mime_type || "image/jpeg";
+        const data = photo.photo;
+        if (typeof data === "string") {
+            if (data.startsWith("data:")) return data;
+            return `data:${mt};base64,${data}`;
+        }
+        if (data && typeof data === "object" && (data as any).type === "Buffer" && Array.isArray((data as any).data)) {
+            const bytes = new Uint8Array((data as any).data);
+            let binary = "";
+            for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+            return `data:${mt};base64,${btoa(binary)}`;
+        }
+        return "";
+    };
+
+    useEffect(() => {
+        if (!institution?.id) return;
+        const load = async () => {
+            setLoadingPhotos(true);
+            try {
+                const res = await api.getPhotos(institution.id);
+                setPhotos(res.data);
+            } catch {
+                // silent
+            } finally {
+                setLoadingPhotos(false);
+            }
+        };
+        load();
+    }, [institution?.id]);
+
+    const handleUploadPhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file || !institution?.id) return;
+        e.target.value = "";
+        setLoadingUpload(true);
+        try {
+            await api.uploadPhoto(institution.id, file);
+            const res = await api.getPhotos(institution.id);
+            setPhotos(res.data);
+        } catch {
+            // silent
+        } finally {
+            setLoadingUpload(false);
+        }
+    };
+
+    const [deletingPhotoId, setDeletingPhotoId] = useState<number | null>(null);
+
+    const handleDeletePhoto = async (photoId: number) => {
+        setDeletingPhotoId(photoId);
+    };
+
+    const confirmDeletePhoto = async () => {
+        if (deletingPhotoId === null) return;
+        const id = deletingPhotoId;
+        setDeletingPhotoId(null);
+        try {
+            await api.deletePhoto(id);
+            setPhotos((prev) => prev.filter((p) => p.id !== id));
+        } catch {
+            // silent
+        }
+    };
 
     const startEditActivity = (idx: number) => {
         setEditingActivityIdx(idx);
@@ -185,10 +259,24 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        onSave(formData);
+        const { name, state, responsible, status, observations } = formData;
+        onSave({
+            name,
+            state,
+            responsible,
+            status,
+            observations,
+            activities: formData.activities.map(({ name, responsible, start_date, end_date, status }) => ({
+                name, responsible, start_date, end_date, status,
+            })),
+            machine: formData.machine.map(({ simb, descricao, status, marca, quantidade, previsao_entrega }) => ({
+                simb, descricao, status, marca, quantidade, previsao_entrega,
+            })),
+        });
     };
 
     return (
+        <>
         <Dialog open fullWidth maxWidth="md" PaperProps={{ sx: { maxHeight: "90vh" } }}>
             <DialogTitle
                 sx={{
@@ -866,90 +954,79 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
                         {!readOnly && <Divider sx={{ my: 2 }} />}
 
-                        {/* Add new activity */}
+                        {/* Add new machine */}
                         {!readOnly && (
                             <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                                 <Grid container spacing={1.5}>
-                                    <Grid item xs={12} sm={8}>
-                                        <Autocomplete
-                                            freeSolo
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
                                             size="small"
-                                            options={PREDEFINED_ACTIVITIES.map((a) => a.name)}
-                                            value={newActivity.name}
-                                            onInputChange={(_, value) => setNewActivity({ ...newActivity, name: value })}
-                                            onChange={(_, value) => {
-                                                if (!value) return;
-                                                const preset = PREDEFINED_ACTIVITIES.find((a) => a.name === value);
-                                                setNewActivity({
-                                                    ...newActivity,
-                                                    name: value,
-                                                    responsible: preset ? preset.responsible : newActivity.responsible,
-                                                });
-                                            }}
-                                            renderInput={(params) => <TextField {...params} placeholder="Nome da atividade *" />}
+                                            fullWidth
+                                            label="SIMB"
+                                            value={editingMachineData.simb}
+                                            onChange={(e) => setEditingMachineData({ ...editingMachineData, simb: e.target.value })}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={6}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            label="Descrição"
+                                            value={editingMachineData.descricao}
+                                            onChange={(e) => setEditingMachineData({ ...editingMachineData, descricao: e.target.value })}
                                         />
                                     </Grid>
                                     <Grid item xs={12} sm={4}>
                                         <TextField
                                             size="small"
                                             fullWidth
-                                            placeholder="Responsável"
-                                            value={newActivity.responsible}
-                                            onChange={(e) => setNewActivity({ ...newActivity, responsible: e.target.value })}
+                                            label="Status"
+                                            value={editingMachineData.status}
+                                            onChange={(e) => setEditingMachineData({ ...editingMachineData, status: e.target.value })}
                                         />
                                     </Grid>
-                                </Grid>
-
-                                <Grid container spacing={1.5} alignItems="flex-end">
-                                    <Grid item xs={12} sm={3}>
+                                    <Grid item xs={12} sm={4}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            label="Marca"
+                                            value={editingMachineData.marca || ""}
+                                            onChange={(e) => setEditingMachineData({ ...editingMachineData, marca: e.target.value })}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={4}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            type="number"
+                                            label="Quantidade"
+                                            value={editingMachineData.quantidade}
+                                            onChange={(e) => setEditingMachineData({ ...editingMachineData, quantidade: Number(e.target.value) })}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={9}>
                                         <Typography variant="caption" sx={{ display: "block", color: "#666", mb: 0.5, fontWeight: 500 }}>
-                                            Data Início
+                                            Previsão Entrega
                                         </Typography>
                                         <TextField
                                             size="small"
                                             fullWidth
                                             type="date"
-                                            value={newActivity.start_date}
-                                            onChange={(e) => setNewActivity({ ...newActivity, start_date: e.target.value })}
+                                            value={
+                                                editingMachineData.previsao_entrega
+                                                    ? new Date(editingMachineData.previsao_entrega).toISOString().split("T")[0]
+                                                    : ""
+                                            }
+                                            onChange={(e) => setEditingMachineData({ ...editingMachineData, previsao_entrega: new Date(e.target.value) })}
                                             InputLabelProps={{ shrink: true }}
                                         />
                                     </Grid>
-                                    <Grid item xs={12} sm={3}>
-                                        <Typography variant="caption" sx={{ display: "block", color: "#666", mb: 0.5, fontWeight: 500 }}>
-                                            Data Fim
-                                        </Typography>
-                                        <TextField
-                                            size="small"
-                                            fullWidth
-                                            type="date"
-                                            value={newActivity.end_date}
-                                            onChange={(e) => setNewActivity({ ...newActivity, end_date: e.target.value })}
-                                            InputLabelProps={{ shrink: true }}
-                                        />
-                                    </Grid>
-                                    <Grid item xs={12} sm={3}>
-                                        <Typography variant="caption" sx={{ display: "block", color: "#666", mb: 0.5, fontWeight: 500 }}>
-                                            Status
-                                        </Typography>
-                                        <FormControl fullWidth size="small">
-                                            <Select
-                                                value={newActivity.status}
-                                                onChange={(e) => setNewActivity({ ...newActivity, status: e.target.value as ActivityStatus })}
-                                            >
-                                                {ACTIVITY_STATUS_OPTIONS.map((s) => (
-                                                    <MenuItem key={s} value={s}>
-                                                        {s}
-                                                    </MenuItem>
-                                                ))}
-                                            </Select>
-                                        </FormControl>
-                                    </Grid>
-                                    <Grid item xs={12} sm={3}>
+                                    <Grid item xs={12} sm={3} sx={{ display: "flex", alignItems: "flex-end" }}>
                                         <Button
                                             variant="outlined"
                                             fullWidth
                                             startIcon={<Plus size={16} />}
-                                            onClick={addActivity}
+                                            onClick={addMachine}
                                             sx={{
                                                 height: 40,
                                                 bgcolor: "#e7f1ff",
@@ -966,6 +1043,90 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                             </Box>
                         )}
                     </Paper>
+                    {/* Photo Gallery */}
+                    {institution?.id && (
+                        <Paper variant="outlined" sx={{ p: 2.5, bgcolor: "#f8f9fa", mt: 2 }}>
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: photos.length > 0 || loadingPhotos ? 2 : 0 }}>
+                                <Typography variant="body1" fontWeight={600} sx={{ color: "#495057" }}>
+                                    Galeria de Fotos
+                                </Typography>
+                                <Button
+                                    type="button"
+                                    variant="outlined"
+                                    size="small"
+                                    startIcon={loadingUpload ? <CircularProgress size={14} /> : <Upload size={16} />}
+                                    onClick={() => fileInputRef.current?.click()}
+                                    disabled={loadingUpload}
+                                    sx={{ borderColor: "primary.main", color: "primary.main", "&:hover": { bgcolor: "#e7f1ff" } }}
+                                >
+                                    Adicionar Foto
+                                </Button>
+                                <input
+                                    ref={fileInputRef}
+                                    type="file"
+                                    accept="image/*"
+                                    style={{ display: "none" }}
+                                    onChange={handleUploadPhoto}
+                                />
+                            </Box>
+
+                            {loadingPhotos ? (
+                                <Box sx={{ display: "flex", justifyContent: "center", py: 3 }}>
+                                    <CircularProgress size={24} />
+                                </Box>
+                            ) : photos.length === 0 ? (
+                                <Typography variant="body2" sx={{ color: "#adb5bd", textAlign: "center", py: 2, fontStyle: "italic" }}>
+                                    Nenhuma foto cadastrada
+                                </Typography>
+                            ) : (
+                                <Box sx={{ display: "flex", flexWrap: "wrap", gap: 1 }}>
+                                    {photos.map((photo) => (
+                                        <Box
+                                            key={photo.id}
+                                            sx={{
+                                                position: "relative",
+                                                width: 100,
+                                                height: 100,
+                                                borderRadius: 1,
+                                                overflow: "hidden",
+                                                border: "1px solid #dee2e6",
+                                                cursor: "pointer",
+                                                flexShrink: 0,
+                                                "&:hover .del-btn": { opacity: 1 },
+                                            }}
+                                            onClick={() => setPreviewPhoto(photo)}
+                                        >
+                                            <img
+                                                src={photoToDataUrl(photo)}
+                                                alt={photo.original_name || "foto"}
+                                                style={{ width: "100%", height: "100%", objectFit: "cover" }}
+                                            />
+                                            <IconButton
+                                                type="button"
+                                                className="del-btn"
+                                                size="small"
+                                                onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
+                                                sx={{
+                                                    position: "absolute",
+                                                    top: 4,
+                                                    right: 4,
+                                                    opacity: 0,
+                                                    transition: "opacity 0.15s",
+                                                    bgcolor: "rgba(229,34,7,0.85)",
+                                                    color: "white",
+                                                    width: 24,
+                                                    height: 24,
+                                                    "&:hover": { bgcolor: "rgba(229,34,7,1)", opacity: "1 !important" },
+                                                }}
+                                            >
+                                                <Trash2 size={12} />
+                                            </IconButton>
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
+                        </Paper>
+                    )}
                 </DialogContent>
 
                 <DialogActions sx={{ p: 2, borderTop: "1px solid #dee2e6", gap: 1.5 }}>
@@ -1002,5 +1163,37 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                 </DialogActions>
             </form>
         </Dialog>
+
+        {previewPhoto && (
+            <Dialog open onClose={() => setPreviewPhoto(null)} maxWidth="lg">
+                <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1.5 }}>
+                    <Typography variant="body1" fontWeight={600}>
+                        {previewPhoto.original_name || "Foto"}
+                    </Typography>
+                    <IconButton onClick={() => setPreviewPhoto(null)} size="small">
+                        <X size={18} />
+                    </IconButton>
+                </DialogTitle>
+                <DialogContent sx={{ p: 1 }}>
+                    <img
+                        src={photoToDataUrl(previewPhoto)}
+                        alt={previewPhoto.original_name || "foto"}
+                        style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", display: "block" }}
+                    />
+                </DialogContent>
+            </Dialog>
+        )}
+
+        <Dialog open={deletingPhotoId !== null} onClose={() => setDeletingPhotoId(null)} maxWidth="xs" fullWidth>
+            <DialogTitle>Remover foto</DialogTitle>
+            <DialogContent>
+                <Typography variant="body2">Tem certeza que deseja remover esta foto?</Typography>
+            </DialogContent>
+            <DialogActions sx={{ gap: 1, p: 2 }}>
+                <Button variant="outlined" onClick={() => setDeletingPhotoId(null)}>Cancelar</Button>
+                <Button type="button" variant="contained" color="error" onClick={confirmDeletePhoto}>Remover</Button>
+            </DialogActions>
+        </Dialog>
+        </>
     );
 }
