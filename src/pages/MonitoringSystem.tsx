@@ -313,7 +313,7 @@ export default function MonitoringSystem() {
                 sx={{
                     maxWidth: 1400,
                     mx: "auto",
-                    p: 3,
+                    p: currentView === "gantt" ? 1 : 3,
                     flexGrow: 1,
                     width: "100%",
                 }}
@@ -409,11 +409,7 @@ export default function MonitoringSystem() {
                 )}
 
                 {currentView === "gantt" && (
-                    <Paper
-                        sx={{
-                            overflow: "hidden",
-                        }}
-                    >
+                    <Paper sx={{ overflow: "auto", width: "70vw", mx: "auto" }}>
                         <GanttChart institutions={filteredInstitutions} />
                     </Paper>
                 )}

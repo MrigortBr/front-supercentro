@@ -1,3 +1,4 @@
+import { useRef, useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
 import { Institution, ActivityStatus } from "../types";
 
@@ -5,26 +6,17 @@ interface GanttChartProps {
 	institutions: Institution[];
 }
 
-const MONTHS = ["Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
-const TOTAL_WEEKS = 36;
-const LABEL_WIDTH = 180;
-const MONTH_MIN_WIDTH = 64;
-const INST_ROW_HEIGHT = { xs: 40, md: 48 };
-const ACT_ROW_HEIGHT = { xs: 38, md: 44 };
+const MONTHS_2026_REST = ["Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
+const N_REST = 9;      // Abr–Dez
+const N_COLS = 11;     // 2025(1) + Q1(1) + 9 meses = 11 colunas iguais
 
-function getGanttPosition(dateStr: string): number | null {
-	if (!dateStr) return null;
-	try {
-		const date = new Date(dateStr);
-		const april2026 = new Date("2026-04-01");
-		const diffTime = date.getTime() - april2026.getTime();
-		const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-		const diffWeeks = Math.floor(diffDays / 7);
-		return Math.max(0, Math.min(TOTAL_WEEKS - 1, diffWeeks));
-	} catch {
-		return null;
-	}
-}
+const LABEL_WIDTH  = 220;
+const INST_ROW_H   = 48;
+const ACT_ROW_H    = 44;
+const HEADER_YEAR_H = 22;
+const HEADER_MON_H  = 22;
+const HEADER_WEEK_H = 18;
+const HEADER_TOTAL_H = HEADER_YEAR_H + HEADER_MON_H + HEADER_WEEK_H; // 62px
 
 const activityBarColors: Record<ActivityStatus, string> = {
 	Concluído: "#168821",
@@ -33,42 +25,106 @@ const activityBarColors: Record<ActivityStatus, string> = {
 	Planejado: "#FF8C00",
 };
 
+/** Calcula as larguras a partir da largura real do container */
+function calcDims(containerW: number) {
+	const available = Math.max(containerW - LABEL_WIDTH, N_COLS * 20);
+	const W_MONTH   = available / N_COLS;
+	return {
+		W_MONTH,
+		W_2025:    W_MONTH,
+		W_Q1_2026: W_MONTH,
+		W_REST:    N_REST * W_MONTH,
+		TOTAL_CHART_W: available,
+	};
+}
+
+/**
+ * Posição em pixels a partir da borda esquerda do painel do gráfico.
+ *   2025         → [0,       W_2025)
+ *   2026 Jan-Mar → [W_2025,  W_2025+W_Q1)
+ *   2026 Abr-Dez → [W_2025+W_Q1, total)
+ */
+function getGanttPx(
+	dateStr: string,
+	W_2025: number,
+	W_Q1_2026: number,
+	W_MONTH: number,
+): number | null {
+	if (!dateStr) return null;
+	try {
+		const parts = dateStr.substring(0, 10).split("-");
+		const y  = parseInt(parts[0], 10);
+		const mo = parseInt(parts[1], 10);
+		const d  = parseInt(parts[2], 10);
+		if (isNaN(y) || isNaN(mo) || isNaN(d)) return null;
+
+		const daysInMonth = new Date(y, mo, 0).getDate();
+		const dayFrac = (d - 1) / daysInMonth;
+
+		if (y === 2025) {
+			return ((mo - 1 + dayFrac) / 12) * W_2025;
+		} else if (y === 2026 && mo <= 3) {
+			return W_2025 + ((mo - 1 + dayFrac) / 3) * W_Q1_2026;
+		} else if (y === 2026 && mo >= 4) {
+			return W_2025 + W_Q1_2026 + (mo - 4 + dayFrac) * W_MONTH;
+		}
+		return null;
+	} catch {
+		return null;
+	}
+}
+
 export default function GanttChart({ institutions }: GanttChartProps) {
+	const rootRef = useRef<HTMLDivElement>(null);
+
+	const [dims, setDims] = useState(() => calcDims(window.innerWidth * 0.7));
+
+	useEffect(() => {
+		const el = rootRef.current;
+		if (!el) return;
+		const ro = new ResizeObserver(([entry]) => {
+			setDims(calcDims(entry.contentRect.width));
+		});
+		ro.observe(el);
+		return () => ro.disconnect();
+	}, []);
+
+	const { W_MONTH, W_2025, W_Q1_2026, W_REST, TOTAL_CHART_W } = dims;
+
+	const px = (dateStr: string) => getGanttPx(dateStr, W_2025, W_Q1_2026, W_MONTH);
+
 	return (
-		<Box sx={{ display: "flex" }}>
+		<Box ref={rootRef} sx={{ display: "flex" }}>
 			{/* Coluna de labels (fixa) */}
 			<Box sx={{ width: LABEL_WIDTH, flexShrink: 0, borderRight: "1px solid #dee2e6" }}>
-				{/* Header da coluna label */}
 				<Box
 					sx={{
 						bgcolor: "#1351B4",
-						p: { xs: 1, md: 2 },
 						display: "flex",
 						alignItems: "center",
 						justifyContent: "center",
-						height: "7vh",
+						height: HEADER_TOTAL_H,
 					}}
 				>
-					<Typography variant="body2" fontWeight={600} color="white" sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}>
+					<Typography variant="body2" fontWeight={600} color="white" sx={{ fontSize: "0.875rem" }}>
 						Atividade
 					</Typography>
 				</Box>
 
-				{/* Linhas */}
 				{institutions.map((inst, idx) => (
 					<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
 						<Box
 							sx={{
-								height: INST_ROW_HEIGHT,
+								height: INST_ROW_H,
 								display: "flex",
 								alignItems: "center",
-								px: { xs: 1, md: 2 },
+								px: 2,
 								bgcolor: "#f0f4fb",
 								borderBottom: "1px solid #e9ecef",
 								overflow: "hidden",
 							}}
 						>
-							<Typography noWrap variant="body2" fontWeight={700} color="primary" sx={{ fontSize: { xs: "0.75rem", md: "0.875rem" } }}>
+							<Typography noWrap variant="body2" fontWeight={700} color="primary" sx={{ fontSize: "0.875rem" }}>
 								{inst.name}
 							</Typography>
 						</Box>
@@ -77,17 +133,17 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 							<Box
 								key={aidx}
 								sx={{
-									height: ACT_ROW_HEIGHT,
+									height: ACT_ROW_H,
 									display: "flex",
 									alignItems: "center",
-									pl: { xs: 2, md: 3 },
+									pl: 3,
 									pr: 1,
 									bgcolor: "white",
 									borderBottom: "1px solid #e9ecef",
 									overflow: "hidden",
 								}}
 							>
-								<Typography noWrap variant="body2" sx={{ color: "#666", fontWeight: 400, fontSize: { xs: "0.7rem", md: "0.875rem" } }}>
+								<Typography noWrap variant="body2" sx={{ color: "#666", fontSize: "0.8rem" }}>
 									{activity.name}
 								</Typography>
 							</Box>
@@ -96,70 +152,144 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 				))}
 			</Box>
 
-			{/* Painel do gráfico (scrollável) */}
+			{/* Painel scrollável */}
 			<Box sx={{ flex: 1, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
-				{/* Header dos meses */}
-				<Box sx={{ display: "flex", bgcolor: "#1351B4", color: "white", position: "sticky", top: 0, zIndex: 5, minWidth: "max-content", height: "7vh" }}>
-					{MONTHS.map((month) => (
-						<Box
-							key={month}
+				{/* ── Header ── */}
+				<Box
+					sx={{
+						display: "flex",
+						bgcolor: "#1351B4",
+						color: "white",
+						position: "sticky",
+						top: 0,
+						zIndex: 5,
+						width: TOTAL_CHART_W,
+					}}
+				>
+					{/* 2025 – coluna única */}
+					<Box
+						sx={{
+							width: W_2025,
+							flexShrink: 0,
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							borderRight: "2px solid rgba(255,255,255,0.35)",
+						}}
+					>
+						<Typography sx={{ color: "#FFCD07", fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.06em" }}>
+							2025
+						</Typography>
+					</Box>
+
+					{/* 2026 (1º tri) – coluna única */}
+					<Box
+						sx={{
+							width: W_Q1_2026,
+							flexShrink: 0,
+							display: "flex",
+							alignItems: "center",
+							justifyContent: "center",
+							borderRight: "2px solid rgba(255,255,255,0.35)",
+							px: 0.5,
+						}}
+					>
+						<Typography
 							sx={{
-								flex: 1,
-								minWidth: MONTH_MIN_WIDTH,
-								borderRight: "1px solid rgba(255,255,255,0.2)",
-								"&:first-of-type": { borderLeft: "1px solid rgba(255,255,255,0.2)" },
+								color: "#FFCD07",
+								fontWeight: 700,
+								fontSize: "0.65rem",
+								letterSpacing: "0.03em",
+								textAlign: "center",
+								lineHeight: 1.3,
 							}}
 						>
-							<Box
-								sx={{
-									p: { xs: "0.25rem", md: "0.5rem" },
-									textAlign: "center",
-									fontWeight: 600,
-									color: "#FFCD07",
-									borderBottom: "1px solid rgba(255,255,255,0.2)",
-									fontSize: { xs: "0.7rem", md: "0.875rem" },
-								}}
-							>
-								{month}
-							</Box>
-							<Box sx={{ display: "flex" }}>
-								{[1, 2, 3, 4].map((w) => (
+							{"2026\n(1º tri)"}
+						</Typography>
+					</Box>
+
+					{/* 2026 Abr–Dez – meses + semanas */}
+					<Box sx={{ display: "flex", flexDirection: "column", width: W_REST, flexShrink: 0 }}>
+						<Box
+							sx={{
+								height: HEADER_YEAR_H,
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								borderBottom: "1px solid rgba(255,255,255,0.25)",
+							}}
+						>
+							<Typography sx={{ color: "#FFCD07", fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.06em" }}>
+								2026
+							</Typography>
+						</Box>
+						<Box sx={{ display: "flex" }}>
+							{MONTHS_2026_REST.map((m) => (
+								<Box
+									key={m}
+									sx={{
+										width: W_MONTH,
+										flexShrink: 0,
+										display: "flex",
+										flexDirection: "column",
+										borderRight: "1px solid rgba(255,255,255,0.2)",
+										"&:last-of-type": { borderRight: "none" },
+									}}
+								>
 									<Box
-										key={w}
 										sx={{
-											flex: 1,
-											p: { xs: "0.2rem", md: "0.375rem" },
-											textAlign: "center",
-											fontSize: { xs: "0.6rem", md: "0.7rem" },
-											opacity: 0.8,
-											borderRight: w < 4 ? "1px solid rgba(255,255,255,0.1)" : "none",
+											height: HEADER_MON_H,
+											display: "flex",
+											alignItems: "center",
+											justifyContent: "center",
+											borderBottom: "1px solid rgba(255,255,255,0.2)",
 										}}
 									>
-										{w}
+										<Typography sx={{ color: "#FFCD07", fontWeight: 600, fontSize: "0.75rem" }}>{m}</Typography>
 									</Box>
-								))}
-							</Box>
+									<Box sx={{ display: "flex", height: HEADER_WEEK_H }}>
+										{[1, 2, 3, 4].map((w) => (
+											<Box
+												key={w}
+												sx={{
+													flex: 1,
+													display: "flex",
+													alignItems: "center",
+													justifyContent: "center",
+													color: "white",
+													fontSize: "0.6rem",
+													opacity: 0.75,
+													borderRight: w < 4 ? "1px solid rgba(255,255,255,0.1)" : "none",
+												}}
+											>
+												{w}
+											</Box>
+										))}
+									</Box>
+								</Box>
+							))}
 						</Box>
-					))}
+					</Box>
 				</Box>
 
-				{/* Linhas do gráfico */}
-				<Box sx={{ bgcolor: "white" }}>
+				{/* ── Linhas do gráfico ── */}
+				<Box sx={{ bgcolor: "white", width: TOTAL_CHART_W }}>
 					{institutions.map((inst, idx) => {
 						const validActivities = (inst.activities || []).filter((a) => a.start_date && a.end_date);
 						const positions = validActivities
-							.map((a) => ({ start: getGanttPosition(a.start_date), end: getGanttPosition(a.end_date) }))
+							.map((a) => ({ start: px(a.start_date), end: px(a.end_date) }))
 							.filter((p): p is { start: number; end: number } => p.start !== null && p.end !== null);
 
 						const minStart = positions.length > 0 ? Math.min(...positions.map((p) => p.start)) : null;
-						const maxEnd = positions.length > 0 ? Math.max(...positions.map((p) => p.end)) : null;
+						const maxEnd   = positions.length > 0 ? Math.max(...positions.map((p) => p.end))   : null;
 
 						return (
 							<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
+								{/* Linha da instituição */}
 								<Box
 									sx={{
-										height: INST_ROW_HEIGHT,
-										minWidth: MONTHS.length * MONTH_MIN_WIDTH,
+										height: INST_ROW_H,
+										width: TOTAL_CHART_W,
 										position: "relative",
 										borderBottom: "1px solid #e9ecef",
 										"&:hover": { bgcolor: "#f8f9fa" },
@@ -169,7 +299,7 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 										<Box
 											sx={{
 												position: "absolute",
-												height: { xs: 18, md: 24 },
+												height: 24,
 												top: "50%",
 												transform: "translateY(-50%)",
 												borderRadius: 1,
@@ -179,37 +309,30 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 												px: 1,
 												minWidth: 4,
 												bgcolor: "#1351B4",
-												boxShadow: "0 2px 4px rgba(19, 81, 180, 0.3)",
-												left: `${(minStart / TOTAL_WEEKS) * 100}%`,
-												width: `${Math.max(1, ((maxEnd - minStart) / TOTAL_WEEKS) * 100)}%`,
+												boxShadow: "0 2px 4px rgba(19,81,180,0.3)",
+												left: minStart,
+												width: Math.max(4, maxEnd - minStart),
 											}}
 										>
-											<Typography
-												sx={{
-													color: "white",
-													fontSize: "0.65rem",
-													fontWeight: 600,
-													whiteSpace: "nowrap",
-													display: { xs: "none", sm: "block" },
-												}}
-											>
+											<Typography sx={{ color: "white", fontSize: "0.65rem", fontWeight: 600, whiteSpace: "nowrap" }}>
 												{inst.status}
 											</Typography>
 										</Box>
 									)}
 								</Box>
 
+								{/* Linhas das atividades */}
 								{(inst.activities || []).map((activity, aidx) => {
-									const start = getGanttPosition(activity.start_date);
-									const end = getGanttPosition(activity.end_date);
+									const start    = px(activity.start_date);
+									const end      = px(activity.end_date);
 									const barColor = activityBarColors[activity.status] || "#1351B4";
 
 									return (
 										<Box
 											key={aidx}
 											sx={{
-												height: ACT_ROW_HEIGHT,
-												minWidth: MONTHS.length * MONTH_MIN_WIDTH,
+												height: ACT_ROW_H,
+												width: TOTAL_CHART_W,
 												position: "relative",
 												borderBottom: "1px solid #e9ecef",
 												"&:hover": { bgcolor: "#f8f9fa" },
@@ -220,15 +343,15 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 													title={`${activity.name} – ${activity.status}`}
 													sx={{
 														position: "absolute",
-														height: { xs: 12, md: 18 },
+														height: 18,
 														top: "50%",
 														transform: "translateY(-50%)",
 														borderRadius: 1,
 														minWidth: 4,
 														bgcolor: barColor,
 														border: `1px solid ${barColor}cc`,
-														left: `${(start / TOTAL_WEEKS) * 100}%`,
-														width: `${Math.max(0.5, ((end - start) / TOTAL_WEEKS) * 100)}%`,
+														left: start,
+														width: Math.max(4, end - start),
 													}}
 												/>
 											)}

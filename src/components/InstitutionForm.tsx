@@ -17,6 +17,7 @@ import {
   IconButton,
   Chip,
   Divider,
+  Autocomplete,
 } from '@mui/material';
 import { Plus, Pencil, Trash2, Calendar, X } from 'lucide-react';
 import { Institution, Activity, InstitutionStatus, ActivityStatus } from '../types';
@@ -34,6 +35,31 @@ const ACTIVITY_STATUS_OPTIONS: ActivityStatus[] = ['Projetado', 'Em andamento', 
 const BRAZIL_STATES = ['AC', 'AL', 'AM', 'AP', 'BA', 'CE', 'DF', 'ES', 'GO', 'MA', 'MG', 'MS', 'MT', 'PA', 'PB', 'PE', 'PI', 'PR', 'RJ', 'RN', 'RO', 'RR', 'RS', 'SC', 'SE', 'SP', 'TO'];
 
 const emptyActivity: Activity = { name: '', responsible: '', start_date: '', end_date: '', status: 'Projetado' };
+
+const PREDEFINED_ACTIVITIES: { name: string; responsible: string }[] = [
+  { name: 'Entrega Scanner', responsible: 'ACC' },
+  { name: 'Visita Técnica', responsible: 'ACC' },
+  { name: 'Visita do Ministério', responsible: 'MS' },
+  { name: 'Apresentação da arquitetura do sistema para implantação', responsible: 'ACC' },
+  { name: 'Início e finalização das obras (construção/adequação) do laboratório', responsible: 'Estado' },
+  { name: 'Mapeamento dos processos na unidade - APLIS', responsible: 'ACC' },
+  { name: 'Aquisição de equipamentos', responsible: 'ACC' },
+  { name: 'Entrega de equipamentos', responsible: 'ACC' },
+  { name: 'Imersão Técnica no AC Camargo', responsible: 'ACC/Estado' },
+  { name: 'Desenvolvimento dos fluxos da unidade no sistema – APLIS', responsible: 'ACC' },
+  { name: 'Contratação/complementação de RH pela unidade (técnicos)', responsible: 'ACC/Estado' },
+  { name: 'Contratação/complementação de patologista na unidade', responsible: 'ACC/Estado' },
+  { name: 'Workshop de Patologia Digital', responsible: 'ACC/Estado' },
+  { name: 'Implantação e validação do equipamento', responsible: 'ACC/Estado' },
+  { name: 'Visita de revisão de processo local', responsible: 'ACC' },
+  { name: 'Entrega de projeto básico', responsible: 'ACC' },
+  { name: 'Validação do projeto básico', responsible: 'Estado' },
+  { name: 'Entrega do Projeto Executivo', responsible: 'ACC' },
+  { name: 'Definição dos municípios para recebimento de amostras/ CIB', responsible: 'Estado' },
+  { name: 'Inauguração', responsible: 'Estado' },
+  { name: 'Início das análises', responsible: 'Estado' },
+  { name: 'Habilitação', responsible: '' },
+];
 
 const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }> = {
   'Concluído': { bg: '#168821', color: '#fff' },
@@ -161,6 +187,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
               value={formData.responsible}
               onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
               placeholder="Ex: ACC"
+              required
               disabled={readOnly}
             />
           </Box>
@@ -197,7 +224,25 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                       <Box key={idx} sx={{ bgcolor: 'white', p: 1.5, borderRadius: 1, border: '1px solid #1351B4', display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                         <Grid container spacing={1.5}>
                           <Grid item xs={12} sm={8}>
-                            <TextField size="small" fullWidth placeholder="Nome da atividade *" value={editingActivityData.name} onChange={(e) => setEditingActivityData({ ...editingActivityData, name: e.target.value })} />
+                            <Autocomplete
+                              freeSolo
+                              size="small"
+                              options={PREDEFINED_ACTIVITIES.map((a) => a.name)}
+                              value={editingActivityData.name}
+                              onInputChange={(_, value) => setEditingActivityData({ ...editingActivityData, name: value })}
+                              onChange={(_, value) => {
+                                if (!value) return;
+                                const preset = PREDEFINED_ACTIVITIES.find((a) => a.name === value);
+                                setEditingActivityData({
+                                  ...editingActivityData,
+                                  name: value,
+                                  responsible: preset ? preset.responsible : editingActivityData.responsible,
+                                });
+                              }}
+                              renderInput={(params) => (
+                                <TextField {...params} placeholder="Nome da atividade *" />
+                              )}
+                            />
                           </Grid>
                           <Grid item xs={12} sm={4}>
                             <TextField size="small" fullWidth placeholder="Responsável" value={editingActivityData.responsible} onChange={(e) => setEditingActivityData({ ...editingActivityData, responsible: e.target.value })} />
@@ -310,12 +355,24 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
             {!readOnly && <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
               <Grid container spacing={1.5}>
                 <Grid item xs={12} sm={8}>
-                  <TextField
+                  <Autocomplete
+                    freeSolo
                     size="small"
-                    fullWidth
-                    placeholder="Nome da atividade *"
+                    options={PREDEFINED_ACTIVITIES.map((a) => a.name)}
                     value={newActivity.name}
-                    onChange={(e) => setNewActivity({ ...newActivity, name: e.target.value })}
+                    onInputChange={(_, value) => setNewActivity({ ...newActivity, name: value })}
+                    onChange={(_, value) => {
+                      if (!value) return;
+                      const preset = PREDEFINED_ACTIVITIES.find((a) => a.name === value);
+                      setNewActivity({
+                        ...newActivity,
+                        name: value,
+                        responsible: preset ? preset.responsible : newActivity.responsible,
+                      });
+                    }}
+                    renderInput={(params) => (
+                      <TextField {...params} placeholder="Nome da atividade *" />
+                    )}
                   />
                 </Grid>
                 <Grid item xs={12} sm={4}>

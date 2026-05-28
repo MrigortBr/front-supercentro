@@ -98,23 +98,21 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
           <Typography variant="body2">{institution.state}</Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', gap: 0.5, mb: institution.observations ? 1.5 : 0, fontSize: '0.925rem' }}>
+        <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, fontSize: '0.925rem' }}>
           <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, minWidth: 100 }}>
             Responsável:
           </Typography>
           <Typography variant="body2">{institution.responsible}</Typography>
         </Box>
 
-        {institution.observations && (
-          <Box sx={{ display: 'flex', gap: 0.5 }}>
-            <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, minWidth: 100 }}>
-              Observações:
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#495057', lineHeight: 1.5 }}>
-              {institution.observations}
-            </Typography>
-          </Box>
-        )}
+        <Box sx={{ display: 'flex', gap: 0.5 }}>
+          <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, minWidth: 100 }}>
+            Observações:
+          </Typography>
+          <Typography variant="body2" sx={{ color: institution.observations ? '#495057' : '#adb5bd', lineHeight: 1.5, fontStyle: institution.observations ? 'normal' : 'italic' }}>
+            {institution.observations || 'Nenhuma'}
+          </Typography>
+        </Box>
       </CardContent>
 
       {/* Activities (expandable) */}
