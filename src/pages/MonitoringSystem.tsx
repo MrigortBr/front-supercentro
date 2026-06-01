@@ -24,6 +24,7 @@ import { BarChart3, Plus, Download, Search, Save, Settings, Calendar } from "luc
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
 import GanttChart from "../components/GanttChart";
+import Footer from "../components/Footer";
 
 import { Institution, ViewType, InstitutionStatus } from "../types";
 
@@ -39,6 +40,8 @@ export default function MonitoringSystem() {
     const [showForm, setShowForm] = useState(false);
 
     const [editingInstitution, setEditingInstitution] = useState<Institution | null>(null);
+
+    const [viewingInstitution, setViewingInstitution] = useState<Institution | null>(null);
 
     const [searchTerm, setSearchTerm] = useState("");
 
@@ -86,6 +89,14 @@ export default function MonitoringSystem() {
         } catch (error) {
             console.error(error);
         }
+    };
+
+    // =========================
+    // VIEW
+    // =========================
+
+    const handleView = (institution: Institution) => {
+        setViewingInstitution(institution);
     };
 
     // =========================
@@ -152,6 +163,8 @@ export default function MonitoringSystem() {
             sx={{
                 minHeight: "100vh",
                 bgcolor: "#f8f9fa",
+                display: "flex",
+                flexDirection: "column",
             }}
         >
             {/* HEADER */}
@@ -177,8 +190,9 @@ export default function MonitoringSystem() {
                             <Typography
                                 sx={{
                                     color: "white",
-                                    fontSize: "1.5rem",
+                                    fontSize: { xs: "0.95rem", sm: "1.25rem", md: "1.5rem" },
                                     fontWeight: 700,
+                                    lineHeight: 1.2,
                                 }}
                             >
                                 Sistema de Monitoramento
@@ -187,6 +201,8 @@ export default function MonitoringSystem() {
                             <Typography
                                 sx={{
                                     color: "rgba(255,255,255,0.8)",
+                                    fontSize: { xs: "0.7rem", sm: "0.875rem" },
+                                    display: { xs: "none", sm: "block" },
                                 }}
                             >
                                 Super Centro Brasil
@@ -197,7 +213,7 @@ export default function MonitoringSystem() {
                     <Box
                         sx={{
                             display: "flex",
-                            gap: 4,
+                            gap: { xs: 2, sm: 4 },
                         }}
                     >
                         <Box
@@ -209,7 +225,7 @@ export default function MonitoringSystem() {
                                 sx={{
                                     color: "#FFCD07",
                                     fontWeight: 700,
-                                    fontSize: "1.5rem",
+                                    fontSize: { xs: "1.1rem", sm: "1.5rem" },
                                 }}
                             >
                                 {institutions.length}
@@ -218,7 +234,7 @@ export default function MonitoringSystem() {
                             <Typography
                                 sx={{
                                     color: "white",
-                                    fontSize: ".75rem",
+                                    fontSize: { xs: "0.65rem", sm: "0.75rem" },
                                 }}
                             >
                                 Instituições
@@ -234,7 +250,7 @@ export default function MonitoringSystem() {
                                 sx={{
                                     color: "#FFCD07",
                                     fontWeight: 700,
-                                    fontSize: "1.5rem",
+                                    fontSize: { xs: "1.1rem", sm: "1.5rem" },
                                 }}
                             >
                                 {statusCount["Em andamento"] || 0}
@@ -243,7 +259,7 @@ export default function MonitoringSystem() {
                             <Typography
                                 sx={{
                                     color: "white",
-                                    fontSize: ".75rem",
+                                    fontSize: { xs: "0.65rem", sm: "0.75rem" },
                                 }}
                             >
                                 Em andamento
@@ -281,9 +297,13 @@ export default function MonitoringSystem() {
                     onClick={exportToPDF}
                     sx={{
                         bgcolor: "#168821",
+                        minWidth: { xs: 40, sm: "auto" },
+                        px: { xs: 1, sm: 2 },
+                        "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
                     }}
                 >
-                    Exportar PDF
+                    <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Exportar PDF</Box>
+                    <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
                 </Button>
             </Box>
 
@@ -293,7 +313,9 @@ export default function MonitoringSystem() {
                 sx={{
                     maxWidth: 1400,
                     mx: "auto",
-                    p: 3,
+                    p: currentView === "gantt" ? 1 : 3,
+                    flexGrow: 1,
+                    width: "100%",
                 }}
             >
                 {currentView === "list" && (
@@ -378,7 +400,7 @@ export default function MonitoringSystem() {
                             <Grid container spacing={2}>
                                 {filteredInstitutions.map((institution) => (
                                     <Grid item xs={12} md={6} xl={4} key={institution.id}>
-                                        <InstitutionCard institution={institution} onEdit={handleEdit} onDelete={handleDelete} />
+                                        <InstitutionCard institution={institution} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
                                     </Grid>
                                 ))}
                             </Grid>
@@ -387,11 +409,7 @@ export default function MonitoringSystem() {
                 )}
 
                 {currentView === "gantt" && (
-                    <Paper
-                        sx={{
-                            overflow: "hidden",
-                        }}
-                    >
+                    <Paper sx={{ overflow: "auto", width: "70vw", mx: "auto" }}>
                         <GanttChart institutions={filteredInstitutions} />
                     </Paper>
                 )}
@@ -411,6 +429,22 @@ export default function MonitoringSystem() {
                 />
             )}
 
+            {/* VIEW */}
+
+            {viewingInstitution && (
+                <InstitutionForm
+                    institution={viewingInstitution}
+                    readOnly
+                    onSave={() => {}}
+                    onCancel={() => setViewingInstitution(null)}
+                    onEdit={() => {
+                        const inst = viewingInstitution;
+                        setViewingInstitution(null);
+                        handleEdit(inst);
+                    }}
+                />
+            )}
+
             {/* SNACKBAR */}
 
             <Snackbar open={saveSnackbar} autoHideDuration={2000} onClose={() => setSaveSnackbar(false)}>
@@ -418,6 +452,8 @@ export default function MonitoringSystem() {
                     Salvo com sucesso
                 </Alert>
             </Snackbar>
+
+            <Footer />
         </Box>
     );
 }
