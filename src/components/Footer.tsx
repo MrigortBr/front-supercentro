@@ -30,7 +30,7 @@ export default function Footer() {
                         "@media (max-width:480px)": { width: "100%", textAlign: "center" },
                     }}
                 >
-                    Super Centro Brasil
+                    Supercentro Brasil para diagnótico do câncer
                 </Typography>
 
                 <Box

@@ -205,7 +205,7 @@ export default function MonitoringSystem() {
                                     display: { xs: "none", sm: "block" },
                                 }}
                             >
-                                Super Centro Brasil
+                                Supercentro Brasil para diagnótico do câncer
                             </Typography>
                         </Box>
                     </Box>
@@ -302,8 +302,12 @@ export default function MonitoringSystem() {
                         "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
                     }}
                 >
-                    <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>Exportar PDF</Box>
-                    <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
+                    <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                        Exportar PDF
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>
+                        PDF
+                    </Box>
                 </Button>
             </Box>
 
