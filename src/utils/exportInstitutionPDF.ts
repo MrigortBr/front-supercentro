@@ -3,7 +3,183 @@ import { Institution } from "../types";
 
 type DocWithPages = { internal: { getNumberOfPages: () => number } };
 
-export function exportInstitutionDetailPDF(institution: Institution) {
+function drawGanttPage(doc: jsPDF, institution: Institution) {
+    doc.addPage('a4', 'landscape');
+
+    const PW = doc.internal.pageSize.getWidth();
+    const PH = doc.internal.pageSize.getHeight();
+    const M  = 10;
+    const LABEL_W = 52;
+    const CHART_W = PW - 2 * M - LABEL_W;
+    const N_COLS  = 11; // 2025 | Q1 2026 | Abr…Dez (9)
+    const W_COL   = CHART_W / N_COLS;
+    const W_2025  = W_COL;
+    const W_Q1    = W_COL;
+    const W_MON   = W_COL;
+
+    const HEADER_Y_H = 7;  // year band
+    const HEADER_M_H = 7;  // month band
+    const HEADER_H   = HEADER_Y_H + HEADER_M_H;
+    const INST_H     = 9;
+    const ACT_H      = 7;
+
+    const BLUE:   [number,number,number] = [19, 81, 180];
+    const YELLOW: [number,number,number] = [255, 205, 7];
+    const actColors: Record<string, [number,number,number]> = {
+        Concluído:      [22, 136, 33],
+        "Em andamento": [19, 81, 180],
+        Projetado:      [255, 140, 0],
+        Planejado:      [255, 140, 0],
+    };
+
+    // ── Page header ──
+    doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
+    doc.rect(0, 0, PW, 15, "F");
+    doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
+    doc.setFontSize(11);
+    doc.setFont("helvetica", "bold");
+    doc.text("Cronograma de Atividades", M, 10);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "normal");
+    doc.text(institution.name, M, 14);
+
+    const chartX = M + LABEL_W;
+    let y = 20;
+
+    // ── Gantt header — year row ──
+    doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
+    doc.rect(M, y, LABEL_W, HEADER_H, "F");
+    doc.rect(chartX, y, CHART_W, HEADER_Y_H, "F");
+
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text("Atividade", M + 3, y + HEADER_H / 2 + 2);
+
+    doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
+    doc.setFontSize(6.5);
+    doc.text("2025", chartX + W_2025 / 2, y + HEADER_Y_H / 2 + 2, { align: "center" });
+    doc.text("2026", chartX + W_2025 + (CHART_W - W_2025) / 2, y + HEADER_Y_H / 2 + 2, { align: "center" });
+
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.5);
+    doc.line(chartX + W_2025, y, chartX + W_2025, y + HEADER_Y_H);
+
+    // ── Gantt header — month row ──
+    const y2 = y + HEADER_Y_H;
+    doc.setFillColor(BLUE[0] + 15, BLUE[1] + 15, BLUE[2] + 15);
+    doc.rect(chartX, y2, CHART_W, HEADER_M_H, "F");
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(5.5);
+    doc.setFont("helvetica", "bold");
+
+    // Q1
+    doc.text("1º Tri", chartX + W_2025 + W_Q1 / 2, y2 + HEADER_M_H / 2 + 2, { align: "center" });
+    doc.setDrawColor(255, 255, 255);
+    doc.setLineWidth(0.3);
+    doc.line(chartX + W_2025, y2, chartX + W_2025, y2 + HEADER_M_H);
+    doc.line(chartX + W_2025 + W_Q1, y2, chartX + W_2025 + W_Q1, y2 + HEADER_M_H);
+
+    // Abr–Dez
+    ["Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].forEach((mon, i) => {
+        const mx = chartX + W_2025 + W_Q1 + i * W_MON;
+        doc.text(mon, mx + W_MON / 2, y2 + HEADER_M_H / 2 + 2, { align: "center" });
+        doc.line(mx, y2, mx, y2 + HEADER_M_H);
+    });
+
+    y += HEADER_H;
+
+    // ── Date → x offset (mm) ──
+    const dateToX = (dateStr: string): number | null => {
+        try {
+            const parts = dateStr.substring(0, 10).split("-");
+            const yr = parseInt(parts[0], 10);
+            const mo = parseInt(parts[1], 10);
+            const d  = parseInt(parts[2], 10);
+            if (isNaN(yr) || isNaN(mo) || isNaN(d)) return null;
+            const frac = (d - 1) / new Date(yr, mo, 0).getDate();
+            if (yr === 2025)              return ((mo - 1 + frac) / 12) * W_2025;
+            if (yr === 2026 && mo <= 3)   return W_2025 + ((mo - 1 + frac) / 3) * W_Q1;
+            if (yr === 2026 && mo >= 4)   return W_2025 + W_Q1 + (mo - 4 + frac) * W_MON;
+            return null;
+        } catch { return null; }
+    };
+
+    const gridLines = [
+        W_2025, W_2025 + W_Q1,
+        ...Array.from({ length: 9 }, (_, i) => W_2025 + W_Q1 + (i + 1) * W_MON),
+    ];
+
+    const drawGridLines = (rowY: number, rowH: number) => {
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.2);
+        gridLines.forEach(ox => doc.line(chartX + ox, rowY, chartX + ox, rowY + rowH));
+    };
+
+    const FOOTER_TOP = PH - 8;
+
+    // ── Institution row ──
+    doc.setFillColor(224, 235, 250);
+    doc.rect(M, y, LABEL_W + CHART_W, INST_H, "F");
+    doc.setDrawColor(190, 210, 240);
+    doc.setLineWidth(0.25);
+    doc.rect(M, y, LABEL_W + CHART_W, INST_H);
+    doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+    doc.setFontSize(7);
+    doc.setFont("helvetica", "bold");
+    doc.text((doc.splitTextToSize(institution.name, LABEL_W - 6) as string[])[0], M + 3, y + INST_H / 2 + 2);
+    drawGridLines(y, INST_H);
+    y += INST_H;
+
+    // ── Activity rows ──
+    (institution.activities || []).forEach((act, i) => {
+        if (y + ACT_H > FOOTER_TOP) return;
+
+        const bg: [number,number,number] = i % 2 === 0 ? [255,255,255] : [248,249,250];
+        doc.setFillColor(bg[0], bg[1], bg[2]);
+        doc.rect(M, y, LABEL_W + CHART_W, ACT_H, "F");
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.2);
+        doc.rect(M, y, LABEL_W + CHART_W, ACT_H);
+
+        doc.setTextColor(80, 80, 80);
+        doc.setFontSize(6);
+        doc.setFont("helvetica", "normal");
+        doc.text((doc.splitTextToSize(act.name, LABEL_W - 8) as string[])[0], M + 5, y + ACT_H / 2 + 2);
+
+        drawGridLines(y, ACT_H);
+
+        if (act.start_date && act.end_date) {
+            const sx = dateToX(String(act.start_date));
+            const ex = dateToX(String(act.end_date));
+            if (sx !== null && ex !== null && ex > sx) {
+                const [r,g,b] = actColors[act.status] || BLUE;
+                const BAR_H = ACT_H - 2.5;
+                doc.setFillColor(r, g, b);
+                doc.roundedRect(chartX + sx, y + (ACT_H - BAR_H) / 2, ex - sx, BAR_H, 0.8, 0.8, "F");
+            }
+        }
+
+        y += ACT_H;
+    });
+
+    // ── Footer ──
+    doc.setFillColor(248, 249, 250);
+    doc.rect(0, FOOTER_TOP, PW, PH - FOOTER_TOP, "F");
+    doc.setDrawColor(222, 226, 230);
+    doc.setLineWidth(0.3);
+    doc.line(0, FOOTER_TOP, PW, FOOTER_TOP);
+    doc.setTextColor(120, 120, 120);
+    doc.setFontSize(6);
+    doc.setFont("helvetica", "normal");
+    doc.text(
+        "Ministério da Saúde — DECAN © 2026 | Sistema de Monitoramento",
+        PW / 2, FOOTER_TOP + 5, { align: "center" }
+    );
+}
+
+export function exportInstitutionDetailPDF(institution: Institution, withGantt = false) {
     const doc = new jsPDF("p", "mm", "a4");
     const PW  = doc.internal.pageSize.getWidth();   // 210
     const PH  = doc.internal.pageSize.getHeight();  // 297
@@ -350,6 +526,8 @@ export function exportInstitutionDetailPDF(institution: Institution) {
         if (pageCount > 1)
             doc.text(`${i} / ${pageCount}`, PW - M, PH - 3.5, { align: "right" });
     }
+
+    if (withGantt) drawGanttPage(doc, institution);
 
     const slug = institution.name
         .toLowerCase()

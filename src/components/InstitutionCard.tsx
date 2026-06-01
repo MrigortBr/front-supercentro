@@ -8,6 +8,11 @@ import {
   Collapse,
   Divider,
   Chip,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Button,
 } from '@mui/material';
 import {
   Edit2,
@@ -30,6 +35,12 @@ interface InstitutionCardProps {
 
 export default function InstitutionCard({ institution, onView, onEdit, onDelete }: InstitutionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+  const handleExport = (withGantt: boolean) => {
+    setExportDialogOpen(false);
+    exportInstitutionDetailPDF(institution, withGantt);
+  };
 
   const activityStatusColors: Record<string, { bg: string; color: string }> = {
     'Concluído': { bg: '#168821', color: '#fff' },
@@ -65,7 +76,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
           <IconButton
             size="small"
             title="Exportar PDF"
-            onClick={(e) => { e.stopPropagation(); exportInstitutionDetailPDF(institution); }}
+            onClick={(e) => { e.stopPropagation(); setExportDialogOpen(true); }}
             sx={{
               border: '1px solid #dee2e6',
               borderRadius: 1,
@@ -130,6 +141,22 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
           </Typography>
         </Box>
       </CardContent>
+
+      {/* Export dialog */}
+      <Dialog
+        open={exportDialogOpen}
+        onClose={() => setExportDialogOpen(false)}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <DialogTitle>Exportar PDF</DialogTitle>
+        <DialogContent>
+          <Typography>Deseja incluir o Gantt da instituição no final do PDF?</Typography>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={() => handleExport(false)}>Sem Gantt</Button>
+          <Button onClick={() => handleExport(true)} variant="contained">Com Gantt</Button>
+        </DialogActions>
+      </Dialog>
 
       {/* Activities (expandable) */}
       <Collapse in={isExpanded}>
