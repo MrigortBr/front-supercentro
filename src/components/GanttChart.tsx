@@ -94,205 +94,187 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 	const px = (dateStr: string) => getGanttPx(dateStr, W_2025, W_Q1_2026, W_MONTH);
 
 	return (
-		<Box ref={rootRef} sx={{ display: "flex" }}>
-			{/* Coluna de labels (fixa) */}
-			<Box sx={{ width: LABEL_WIDTH, flexShrink: 0, borderRight: "1px solid #dee2e6" }}>
-				<Box
-					sx={{
-						bgcolor: "#1351B4",
-						display: "flex",
-						alignItems: "center",
-						justifyContent: "center",
-						height: HEADER_TOTAL_H,
-					}}
-				>
-					<Typography variant="body2" fontWeight={600} color="white" sx={{ fontSize: "0.875rem" }}>
-						Atividade
-					</Typography>
-				</Box>
+		<Box ref={rootRef} sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+			<Box sx={{ minWidth: LABEL_WIDTH + TOTAL_CHART_W }}>
 
-				{institutions.map((inst, idx) => (
-					<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
-						<Box
-							sx={{
-								height: INST_ROW_H,
-								display: "flex",
-								alignItems: "center",
-								px: 2,
-								bgcolor: "#f0f4fb",
-								borderBottom: "1px solid #e9ecef",
-								overflow: "hidden",
-							}}
-						>
-							<Typography noWrap variant="body2" fontWeight={700} color="primary" sx={{ fontSize: "0.875rem" }}>
-								{inst.name}
-							</Typography>
-						</Box>
-
-						{(inst.activities || []).map((activity, aidx) => (
-							<Box
-								key={aidx}
-								sx={{
-									height: ACT_ROW_H,
-									display: "flex",
-									alignItems: "center",
-									pl: 3,
-									pr: 1,
-									bgcolor: "white",
-									borderBottom: "1px solid #e9ecef",
-									overflow: "hidden",
-								}}
-							>
-								<Typography noWrap variant="body2" sx={{ color: "#666", fontSize: "0.8rem" }}>
-									{activity.name}
-								</Typography>
-							</Box>
-						))}
-					</Box>
-				))}
-			</Box>
-
-			{/* Painel scrollável */}
-			<Box sx={{ flex: 1, overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
 				{/* ── Header ── */}
-				<Box
-					sx={{
-						display: "flex",
-						bgcolor: "#1351B4",
-						color: "white",
-						position: "sticky",
-						top: 0,
-						zIndex: 5,
-						width: TOTAL_CHART_W,
-					}}
-				>
-					{/* 2025 – coluna única */}
+				<Box sx={{ display: "flex", position: "sticky", top: 0, zIndex: 10 }}>
+					{/* Label header – sticky esquerda */}
 					<Box
 						sx={{
-							width: W_2025,
+							width: LABEL_WIDTH,
 							flexShrink: 0,
+							position: "sticky",
+							left: 0,
+							zIndex: 11,
+							bgcolor: "#1351B4",
 							display: "flex",
 							alignItems: "center",
 							justifyContent: "center",
-							borderRight: "2px solid rgba(255,255,255,0.35)",
+							height: HEADER_TOTAL_H,
+							borderRight: "1px solid rgba(255,255,255,0.35)",
 						}}
 					>
-						<Typography sx={{ color: "#FFCD07", fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.06em" }}>
-							2025
+						<Typography variant="body2" fontWeight={600} color="white" sx={{ fontSize: "0.875rem" }}>
+							Atividade
 						</Typography>
 					</Box>
 
-					{/* 2026 (1º tri) – coluna única */}
-					<Box
-						sx={{
-							width: W_Q1_2026,
-							flexShrink: 0,
-							display: "flex",
-							alignItems: "center",
-							justifyContent: "center",
-							borderRight: "2px solid rgba(255,255,255,0.35)",
-							px: 0.5,
-						}}
-					>
-						<Typography
-							sx={{
-								color: "#FFCD07",
-								fontWeight: 700,
-								fontSize: "0.65rem",
-								letterSpacing: "0.03em",
-								textAlign: "center",
-								lineHeight: 1.3,
-							}}
-						>
-							{"2026\n(1º tri)"}
-						</Typography>
-					</Box>
-
-					{/* 2026 Abr–Dez – meses + semanas */}
-					<Box sx={{ display: "flex", flexDirection: "column", width: W_REST, flexShrink: 0 }}>
+					{/* Cabeçalho dos meses */}
+					<Box sx={{ width: TOTAL_CHART_W, display: "flex", bgcolor: "#1351B4", flexShrink: 0 }}>
+						{/* 2025 – coluna única */}
 						<Box
 							sx={{
-								height: HEADER_YEAR_H,
+								width: W_2025,
+								flexShrink: 0,
 								display: "flex",
 								alignItems: "center",
 								justifyContent: "center",
-								borderBottom: "1px solid rgba(255,255,255,0.25)",
+								borderRight: "2px solid rgba(255,255,255,0.35)",
 							}}
 						>
 							<Typography sx={{ color: "#FFCD07", fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.06em" }}>
-								2026
+								2025
 							</Typography>
 						</Box>
-						<Box sx={{ display: "flex" }}>
-							{MONTHS_2026_REST.map((m) => (
-								<Box
-									key={m}
-									sx={{
-										width: W_MONTH,
-										flexShrink: 0,
-										display: "flex",
-										flexDirection: "column",
-										borderRight: "1px solid rgba(255,255,255,0.2)",
-										"&:last-of-type": { borderRight: "none" },
-									}}
-								>
+
+						{/* 2026 (1º tri) */}
+						<Box
+							sx={{
+								width: W_Q1_2026,
+								flexShrink: 0,
+								display: "flex",
+								alignItems: "center",
+								justifyContent: "center",
+								borderRight: "2px solid rgba(255,255,255,0.35)",
+								px: 0.5,
+							}}
+						>
+							<Typography
+								sx={{
+									color: "#FFCD07",
+									fontWeight: 700,
+									fontSize: "0.65rem",
+									letterSpacing: "0.03em",
+									textAlign: "center",
+									lineHeight: 1.3,
+								}}
+							>
+								{"2026\n(1º tri)"}
+							</Typography>
+						</Box>
+
+						{/* 2026 Abr–Dez – meses + semanas */}
+						<Box sx={{ display: "flex", flexDirection: "column", width: W_REST, flexShrink: 0 }}>
+							<Box
+								sx={{
+									height: HEADER_YEAR_H,
+									display: "flex",
+									alignItems: "center",
+									justifyContent: "center",
+									borderBottom: "1px solid rgba(255,255,255,0.25)",
+								}}
+							>
+								<Typography sx={{ color: "#FFCD07", fontWeight: 700, fontSize: "0.72rem", letterSpacing: "0.06em" }}>
+									2026
+								</Typography>
+							</Box>
+							<Box sx={{ display: "flex" }}>
+								{MONTHS_2026_REST.map((m) => (
 									<Box
+										key={m}
 										sx={{
-											height: HEADER_MON_H,
+											width: W_MONTH,
+											flexShrink: 0,
 											display: "flex",
-											alignItems: "center",
-											justifyContent: "center",
-											borderBottom: "1px solid rgba(255,255,255,0.2)",
+											flexDirection: "column",
+											borderRight: "1px solid rgba(255,255,255,0.2)",
+											"&:last-of-type": { borderRight: "none" },
 										}}
 									>
-										<Typography sx={{ color: "#FFCD07", fontWeight: 600, fontSize: "0.75rem" }}>{m}</Typography>
+										<Box
+											sx={{
+												height: HEADER_MON_H,
+												display: "flex",
+												alignItems: "center",
+												justifyContent: "center",
+												borderBottom: "1px solid rgba(255,255,255,0.2)",
+											}}
+										>
+											<Typography sx={{ color: "#FFCD07", fontWeight: 600, fontSize: "0.75rem" }}>{m}</Typography>
+										</Box>
+										<Box sx={{ display: "flex", height: HEADER_WEEK_H }}>
+											{[1, 2, 3, 4].map((w) => (
+												<Box
+													key={w}
+													sx={{
+														flex: 1,
+														display: "flex",
+														alignItems: "center",
+														justifyContent: "center",
+														color: "white",
+														fontSize: "0.6rem",
+														opacity: 0.75,
+														borderRight: w < 4 ? "1px solid rgba(255,255,255,0.1)" : "none",
+													}}
+												>
+													{w}
+												</Box>
+											))}
+										</Box>
 									</Box>
-									<Box sx={{ display: "flex", height: HEADER_WEEK_H }}>
-										{[1, 2, 3, 4].map((w) => (
-											<Box
-												key={w}
-												sx={{
-													flex: 1,
-													display: "flex",
-													alignItems: "center",
-													justifyContent: "center",
-													color: "white",
-													fontSize: "0.6rem",
-													opacity: 0.75,
-													borderRight: w < 4 ? "1px solid rgba(255,255,255,0.1)" : "none",
-												}}
-											>
-												{w}
-											</Box>
-										))}
-									</Box>
-								</Box>
-							))}
+								))}
+							</Box>
 						</Box>
 					</Box>
 				</Box>
 
-				{/* ── Linhas do gráfico ── */}
-				<Box sx={{ bgcolor: "white", width: TOTAL_CHART_W }}>
-					{institutions.map((inst, idx) => {
-						const validActivities = (inst.activities || []).filter((a) => a.start_date && a.end_date);
-						const positions = validActivities
-							.map((a) => ({ start: px(a.start_date), end: px(a.end_date) }))
-							.filter((p): p is { start: number; end: number } => p.start !== null && p.end !== null);
+				{/* ── Linhas de dados ── */}
+				{institutions.map((inst, idx) => {
+					const validActivities = (inst.activities || []).filter((a) => a.start_date && a.end_date);
+					const positions = validActivities
+						.map((a) => ({ start: px(a.start_date), end: px(a.end_date) }))
+						.filter((p): p is { start: number; end: number } => p.start !== null && p.end !== null);
 
-						const minStart = positions.length > 0 ? Math.min(...positions.map((p) => p.start)) : null;
-						const maxEnd   = positions.length > 0 ? Math.max(...positions.map((p) => p.end))   : null;
+					const minStart = positions.length > 0 ? Math.min(...positions.map((p) => p.start)) : null;
+					const maxEnd   = positions.length > 0 ? Math.max(...positions.map((p) => p.end))   : null;
 
-						return (
-							<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
-								{/* Linha da instituição */}
+					return (
+						<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
+
+							{/* Linha da instituição */}
+							<Box sx={{ display: "flex", borderBottom: "1px solid #e9ecef" }}>
+								{/* Label */}
 								<Box
 									sx={{
-										height: INST_ROW_H,
+										width: LABEL_WIDTH,
+										flexShrink: 0,
+										position: "sticky",
+										left: 0,
+										zIndex: 2,
+										display: "flex",
+										alignItems: "center",
+										px: 2,
+										py: 0.5,
+										minHeight: INST_ROW_H,
+										bgcolor: "#f0f4fb",
+										borderRight: "1px solid #dee2e6",
+									}}
+								>
+									<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: "0.875rem" }}>
+										{inst.name}
+									</Typography>
+								</Box>
+
+								{/* Barra da instituição */}
+								<Box
+									sx={{
 										width: TOTAL_CHART_W,
+										flexShrink: 0,
 										position: "relative",
-										borderBottom: "1px solid #e9ecef",
-										"&:hover": { bgcolor: "#f8f9fa" },
+										minHeight: INST_ROW_H,
+										bgcolor: "#f0f4fb",
+										"&:hover": { bgcolor: "#e8eef8" },
 									}}
 								>
 									{minStart !== null && maxEnd !== null && (
@@ -320,21 +302,46 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 										</Box>
 									)}
 								</Box>
+							</Box>
 
-								{/* Linhas das atividades */}
-								{(inst.activities || []).map((activity, aidx) => {
-									const start    = px(activity.start_date);
-									const end      = px(activity.end_date);
-									const barColor = activityBarColors[activity.status] || "#1351B4";
+							{/* Linhas das atividades */}
+							{(inst.activities || []).map((activity, aidx) => {
+								const start    = px(activity.start_date);
+								const end      = px(activity.end_date);
+								const barColor = activityBarColors[activity.status] || "#1351B4";
 
-									return (
+								return (
+									<Box key={aidx} sx={{ display: "flex", borderBottom: "1px solid #e9ecef" }}>
+										{/* Label */}
 										<Box
-											key={aidx}
 											sx={{
-												height: ACT_ROW_H,
+												width: LABEL_WIDTH,
+												flexShrink: 0,
+												position: "sticky",
+												left: 0,
+												zIndex: 2,
+												display: "flex",
+												alignItems: "center",
+												pl: 3,
+												pr: 1,
+												py: 0.5,
+												minHeight: ACT_ROW_H,
+												bgcolor: "white",
+												borderRight: "1px solid #dee2e6",
+											}}
+										>
+											<Typography variant="body2" sx={{ color: "#666", fontSize: "0.8rem" }}>
+												{activity.name}
+											</Typography>
+										</Box>
+
+										{/* Barra da atividade */}
+										<Box
+											sx={{
 												width: TOTAL_CHART_W,
+												flexShrink: 0,
 												position: "relative",
-												borderBottom: "1px solid #e9ecef",
+												minHeight: ACT_ROW_H,
 												"&:hover": { bgcolor: "#f8f9fa" },
 											}}
 										>
@@ -356,12 +363,12 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 												/>
 											)}
 										</Box>
-									);
-								})}
-							</Box>
-						);
-					})}
-				</Box>
+									</Box>
+								);
+							})}
+						</Box>
+					);
+				})}
 			</Box>
 		</Box>
 	);
