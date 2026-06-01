@@ -75,7 +75,7 @@ const emptyEquipament: InstitutionEquipment = {
     simb: "",
     status: "",
     marca: "",
-    previsao_entrega: new Date(),
+    previsao_entrega: undefined,
     created_at: new Date(),
 };
 
