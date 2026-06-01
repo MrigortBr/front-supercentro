@@ -20,7 +20,7 @@ import {
     Autocomplete,
     CircularProgress,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, Calendar, X, Upload, Star } from "lucide-react";
+import { Plus, Pencil, Trash2, Calendar, X, Upload } from "lucide-react";
 import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto } from "../types";
 import { chipColors } from "../data/const";
 import { api } from "../service";
