@@ -1126,12 +1126,18 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 size="small"
                                                 options={predefinedCamp.equipament.marca}
                                                 inputValue={editingMachineData.marca || ""}
-                                                onChange={(_, e) =>
+                                                onInputChange={(_, value) => {
                                                     setEditingMachineData({
                                                         ...editingMachineData,
-                                                        marca: e,
-                                                    })
-                                                }
+                                                        marca: value,
+                                                    });
+                                                }}
+                                                onChange={(_, value) => {
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        marca: value ?? "",
+                                                    });
+                                                }}
                                                 renderInput={(params) => <TextField {...params} placeholder="Marca" />}
                                             />
                                         </Grid>
