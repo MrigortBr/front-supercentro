@@ -20,89 +20,20 @@ import {
     Autocomplete,
     CircularProgress,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, Calendar, X, Upload } from "lucide-react";
+import { Plus, Pencil, Trash2, Calendar, X, Upload, Star } from "lucide-react";
 import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto } from "../types";
 import { chipColors } from "../data/const";
 import { api } from "../service";
+import { PREDEFINED_BASE } from "../data/predefined";
 
-interface InstitutionFormProps {
+export interface InstitutionFormProps {
     institution: Institution | null;
     onSave: (data: Omit<Institution, "id">) => void;
     onCancel: () => void;
     onEdit?: () => void;
     readOnly?: boolean;
+    allData: Institution[];
 }
-
-const STATUS_OPTIONS: InstitutionStatus[] = ["Não iniciado", "Em andamento", "Concluído", "Atrasado", "Pendente"];
-const ACTIVITY_STATUS_OPTIONS: ActivityStatus[] = ["Projetado", "Em andamento", "Concluído"];
-const BRAZIL_STATES = [
-    "AC",
-    "AL",
-    "AM",
-    "AP",
-    "BA",
-    "CE",
-    "DF",
-    "ES",
-    "GO",
-    "MA",
-    "MG",
-    "MS",
-    "MT",
-    "PA",
-    "PB",
-    "PE",
-    "PI",
-    "PR",
-    "RJ",
-    "RN",
-    "RO",
-    "RR",
-    "RS",
-    "SC",
-    "SE",
-    "SP",
-    "TO",
-];
-
-const emptyActivity: Activity = { name: "", responsible: "", start_date: "", end_date: "", status: "Projetado" };
-
-const emptyEquipament: InstitutionEquipment = {
-    descricao: "",
-    id: 0,
-    id_instituicion: 0,
-    quantidade: 0,
-    simb: "",
-    status: "",
-    marca: "",
-    previsao_entrega: undefined,
-    created_at: new Date(),
-};
-
-const PREDEFINED_ACTIVITIES: { name: string; responsible: string }[] = [
-    { name: "Entrega Scanner", responsible: "ACC" },
-    { name: "Visita Técnica", responsible: "ACC" },
-    { name: "Visita do Ministério", responsible: "MS" },
-    { name: "Apresentação da arquitetura do Sistema para Implantação", responsible: "ACC" },
-    { name: "Início e finalização das obras (construção/adequação) do laboratório", responsible: "Estado" },
-    { name: "Mapeamento dos processos na unidade - APLIS", responsible: "ACC" },
-    { name: "Aquisição de equipamentos", responsible: "ACC" },
-    { name: "Entrega de equipamentos", responsible: "ACC" },
-    { name: "Imersão Técnica no AC Camargo", responsible: "ACC/Estado" },
-    { name: "Desenvolvimento dos fluxos da unidade no sistema – APLIS", responsible: "ACC" },
-    { name: "Contratação/complementação de RH pela unidade (técnicos)", responsible: "ACC/Estado" },
-    { name: "Contratação/complementação de patologista na unidade", responsible: "ACC/Estado" },
-    { name: "Workshop de Patologia Digital", responsible: "ACC/Estado" },
-    { name: "Implantação e validação do equipamento", responsible: "ACC/Estado" },
-    { name: "Visita de revisão de processo local", responsible: "ACC" },
-    { name: "Entrega de projeto básico", responsible: "ACC" },
-    { name: "Validação do projeto básico", responsible: "Estado" },
-    { name: "Entrega do Projeto Executivo", responsible: "ACC" },
-    { name: "Definição dos municípios para recebimento de amostras/ CIB", responsible: "Estado" },
-    { name: "Inauguração", responsible: "Estado" },
-    { name: "Início das análises", responsible: "Estado" },
-    { name: "Habilitação", responsible: "" },
-];
 
 const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }> = {
     Concluído: { bg: "#168821", color: "#fff" },
@@ -111,16 +42,17 @@ const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }
     Planejado: { bg: "#FF8C00", color: "#fff" },
 };
 
-export default function InstitutionForm({ institution, onSave, onCancel, onEdit, readOnly = false }: InstitutionFormProps) {
+export default function InstitutionForm({ institution, onSave, onCancel, onEdit, readOnly = false, allData }: InstitutionFormProps) {
+    const [predefinedCamp, setPredefinedCamp] = useState(PREDEFINED_BASE);
     const [formData, setFormData] = useState<Omit<Institution, "id">>(
         institution
             ? { ...institution }
             : { name: "", state: "", responsible: "", status: "Não iniciado", observations: "", activities: [], machine: [] }
     );
-    const [newActivity, setNewActivity] = useState<Activity>({ ...emptyActivity });
+    const [newActivity, setNewActivity] = useState<Activity>({ ...PREDEFINED_BASE.activity.empty });
     const [editingActivityIdx, setEditingActivityIdx] = useState<number | null>(null);
-    const [editingActivityData, setEditingActivityData] = useState<Activity>({ ...emptyActivity });
-    const [editingMachineData, setEditingMachineData] = useState<InstitutionEquipment>({ ...emptyEquipament });
+    const [editingActivityData, setEditingActivityData] = useState<Activity>({ ...PREDEFINED_BASE.activity.empty });
+    const [editingMachineData, setEditingMachineData] = useState<InstitutionEquipment>({ ...PREDEFINED_BASE.equipament.empty });
     const [editingMachineIdx, setEditingMachineDataIdx] = useState<number | null>(null);
 
     const [photos, setPhotos] = useState<InstitutionPhoto[]>([]);
@@ -213,6 +145,33 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
         }
     };
 
+    useEffect(() => {
+        const description = [...new Set(allData.flatMap((d) => d.machine.map((a) => a.descricao ?? "")).filter(Boolean))];
+
+        const SIMB = [...new Set(allData.flatMap((d) => d.machine.map((a) => a.simb ?? "")).filter(Boolean))];
+
+        const marca = [...new Set(allData.flatMap((d) => d.machine.map((a) => a.marca ?? "")).filter(Boolean))];
+
+        const status = [...new Set(allData.flatMap((d) => d.machine.map((a) => a.status ?? "")).filter(Boolean))];
+
+        const observation = [...new Set(allData.flatMap((d) => d.activities.map((a) => a.observation ?? "")).filter(Boolean))];
+
+        setPredefinedCamp((prev) => ({
+            ...prev,
+            activity: {
+                ...prev.activity,
+                observation,
+            },
+            equipament: {
+                ...prev.equipament,
+                SIMB,
+                description,
+                status,
+                marca,
+            },
+        }));
+    }, [allData]);
+
     const startEditActivity = (idx: number) => {
         setEditingActivityIdx(idx);
         setEditingActivityData({ ...formData.activities[idx] });
@@ -237,7 +196,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const addActivity = () => {
         if (newActivity.name.trim()) {
             setFormData((prev) => ({ ...prev, activities: [...(prev.activities || []), { ...newActivity }] }));
-            setNewActivity({ ...emptyActivity });
+            setNewActivity({ ...predefinedCamp.activity.empty });
         }
     };
 
@@ -271,7 +230,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                 machine: [...(prev.machine || []), { ...editingMachineData }],
             }));
 
-            setEditingMachineData({ ...emptyEquipament });
+            setEditingMachineData({ ...predefinedCamp.equipament.empty });
         }
     };
 
@@ -284,9 +243,10 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
             responsible,
             status,
             observations,
-            activities: formData.activities.map(({ name, responsible, start_date, end_date, status }) => ({
+            activities: formData.activities.map(({ name, responsible, observation, start_date, end_date, status }) => ({
                 name,
                 responsible,
+                observation,
                 start_date,
                 end_date,
                 status,
@@ -325,7 +285,6 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
                 <form onSubmit={handleSubmit}>
                     <DialogContent sx={{ p: 3 }}>
-                        {/* Institution name */}
                         <Box sx={{ mb: 2.5 }}>
                             <TextField
                                 label="Nome da Instituição"
@@ -351,7 +310,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                         <MenuItem value="">
                                             <em>Selecione</em>
                                         </MenuItem>
-                                        {BRAZIL_STATES.map((s) => (
+                                        {predefinedCamp.states.map((s) => (
                                             <MenuItem key={s} value={s}>
                                                 {s}
                                             </MenuItem>
@@ -367,11 +326,13 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                         value={formData.status}
                                         onChange={(e) => setFormData({ ...formData, status: e.target.value as InstitutionStatus })}
                                     >
-                                        {STATUS_OPTIONS.map((s) => (
-                                            <MenuItem key={s} value={s}>
-                                                {s}
-                                            </MenuItem>
-                                        ))}
+                                        {predefinedCamp.status
+                                            .map((d) => d.text)
+                                            .map((s) => (
+                                                <MenuItem key={s} value={s}>
+                                                    {s}
+                                                </MenuItem>
+                                            ))}
                                     </Select>
                                 </FormControl>
                             </Grid>
@@ -405,7 +366,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                         </Box>
 
                         {/* Activities */}
-                        <Paper variant="outlined" sx={{ p: 2.5, bgcolor: "#f8f9fa" }}>
+                        <Paper variant="outlined" sx={{ p: 2.5, bgcolor: "#f8f9fa" }} style={{ marginBottom: "5vh" }}>
                             <Typography variant="body1" fontWeight={600} sx={{ mb: 2, color: "#495057" }}>
                                 Atividades e Cronograma
                             </Typography>
@@ -436,14 +397,14 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                             <Autocomplete
                                                                 freeSolo
                                                                 size="small"
-                                                                options={PREDEFINED_ACTIVITIES.map((a) => a.name)}
+                                                                options={predefinedCamp.activity.name.map((a) => a.name)}
                                                                 value={editingActivityData.name}
                                                                 onInputChange={(_, value) =>
                                                                     setEditingActivityData({ ...editingActivityData, name: value })
                                                                 }
                                                                 onChange={(_, value) => {
                                                                     if (!value) return;
-                                                                    const preset = PREDEFINED_ACTIVITIES.find((a) => a.name === value);
+                                                                    const preset = predefinedCamp.activity.name.find((a) => a.name === value);
                                                                     setEditingActivityData({
                                                                         ...editingActivityData,
                                                                         name: value,
@@ -453,6 +414,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                 renderInput={(params) => <TextField {...params} placeholder="Nome da atividade *" />}
                                                             />
                                                         </Grid>
+
                                                         <Grid item xs={12} sm={4}>
                                                             <TextField
                                                                 size="small"
@@ -462,6 +424,25 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                 onChange={(e) =>
                                                                     setEditingActivityData({ ...editingActivityData, responsible: e.target.value })
                                                                 }
+                                                            />
+                                                        </Grid>
+                                                    </Grid>
+                                                    <Grid container spacing={1.5} alignItems="flex-end">
+                                                        <Grid item xs={12} sm={12}>
+                                                            <Autocomplete
+                                                                freeSolo
+                                                                size="small"
+                                                                options={predefinedCamp.activity.observation}
+                                                                value={editingActivityData.observation}
+                                                                onInputChange={(_, value) => {
+                                                                    if (!value) return;
+                                                                    setEditingActivityData({ ...editingActivityData, observation: value });
+                                                                }}
+                                                                onChange={(_, value) => {
+                                                                    if (!value) return;
+                                                                    setEditingActivityData({ ...editingActivityData, observation: value });
+                                                                }}
+                                                                renderInput={(params) => <TextField {...params} placeholder="Observação" />}
                                                             />
                                                         </Grid>
                                                     </Grid>
@@ -543,7 +524,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                         })
                                                                     }
                                                                 >
-                                                                    {ACTIVITY_STATUS_OPTIONS.map((s) => (
+                                                                    {predefinedCamp.activity.status.map((s) => (
                                                                         <MenuItem key={s} value={s}>
                                                                             {s}
                                                                         </MenuItem>
@@ -677,12 +658,12 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                             <Autocomplete
                                                 freeSolo
                                                 size="small"
-                                                options={PREDEFINED_ACTIVITIES.map((a) => a.name)}
+                                                options={predefinedCamp.activity.name.map((a) => a.name)}
                                                 value={newActivity.name}
                                                 onInputChange={(_, value) => setNewActivity({ ...newActivity, name: value })}
                                                 onChange={(_, value) => {
                                                     if (!value) return;
-                                                    const preset = PREDEFINED_ACTIVITIES.find((a) => a.name === value);
+                                                    const preset = predefinedCamp.activity.name.find((a) => a.name === value);
                                                     setNewActivity({
                                                         ...newActivity,
                                                         name: value,
@@ -699,6 +680,26 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 placeholder="Responsável"
                                                 value={newActivity.responsible}
                                                 onChange={(e) => setNewActivity({ ...newActivity, responsible: e.target.value })}
+                                            />
+                                        </Grid>
+                                    </Grid>
+
+                                    <Grid container spacing={1.5} alignItems="flex-end">
+                                        <Grid item xs={12} sm={12}>
+                                            <Autocomplete
+                                                freeSolo
+                                                size="small"
+                                                options={predefinedCamp.activity.observation}
+                                                value={newActivity.observation}
+                                                onInputChange={(_, value) => {
+                                                    if (!value) return;
+                                                    setNewActivity({ ...newActivity, observation: value });
+                                                }}
+                                                onChange={(_, value) => {
+                                                    if (!value) return;
+                                                    setNewActivity({ ...newActivity, observation: value });
+                                                }}
+                                                renderInput={(params) => <TextField {...params} placeholder="Observação" />}
                                             />
                                         </Grid>
                                     </Grid>
@@ -730,6 +731,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 InputLabelProps={{ shrink: true }}
                                             />
                                         </Grid>
+
                                         <Grid item xs={12} sm={3}>
                                             <Typography variant="caption" sx={{ display: "block", color: "#666", mb: 0.5, fontWeight: 500 }}>
                                                 Status
@@ -739,7 +741,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                     value={newActivity.status}
                                                     onChange={(e) => setNewActivity({ ...newActivity, status: e.target.value as ActivityStatus })}
                                                 >
-                                                    {ACTIVITY_STATUS_OPTIONS.map((s) => (
+                                                    {predefinedCamp.activity.status.map((s) => (
                                                         <MenuItem key={s} value={s}>
                                                             {s}
                                                         </MenuItem>
@@ -747,6 +749,21 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 </Select>
                                             </FormControl>
                                         </Grid>
+                                        {/* <Grid item xs={12} sm={1}>
+                                            <Button
+                                                variant="outlined"
+                                                sx={{
+                                                    height: 40,
+                                                    bgcolor: "#ecf59a96",
+                                                    borderColor: "#485002",
+                                                    color: "primary.main",
+                                                    "&:hover": { bgcolor: "#ecf59a" },
+                                                    whiteSpace: "nowrap",
+                                                }}
+                                            >
+                                                <Star size={18} color="#282900" fill="#fbff00" />
+                                            </Button>
+                                        </Grid> */}
                                         <Grid item xs={12} sm={3}>
                                             <Button
                                                 variant="outlined"
@@ -798,39 +815,46 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 >
                                                     <Grid container spacing={1.5}>
                                                         <Grid item xs={12} sm={6}>
-                                                            <TextField
+                                                            <Autocomplete
+                                                                freeSolo
                                                                 size="small"
-                                                                fullWidth
-                                                                label="SIMB"
-                                                                value={editingMachineData.simb}
-                                                                onChange={(e) => {
-                                                                    const value = e.target.value.replace(/^E?/i, "");
+                                                                options={predefinedCamp.equipament.SIMB}
+                                                                inputValue={editingMachineData.simb}
+                                                                onInputChange={(_, value) => {
+                                                                    if (typeof value !== "string") return;
 
+                                                                    const v = value.replace(/^E?/i, "");
                                                                     setEditingMachineData({
                                                                         ...editingMachineData,
-                                                                        simb: `E${value}`,
+                                                                        simb: v,
                                                                     });
                                                                 }}
+                                                                renderInput={(params) => <TextField {...params} placeholder="Simb" />}
                                                             />
                                                         </Grid>
 
                                                         <Grid item xs={12} sm={6}>
-                                                            <TextField
+                                                            <Autocomplete
+                                                                freeSolo
                                                                 size="small"
-                                                                fullWidth
-                                                                label="Descrição"
+                                                                options={predefinedCamp.equipament.description}
                                                                 value={editingMachineData.descricao}
-                                                                onChange={(e) =>
-                                                                    setEditingMachineData({
-                                                                        ...editingMachineData,
-                                                                        descricao: e.target.value,
-                                                                    })
+                                                                onInputChange={(_, value) =>
+                                                                    setEditingMachineData({ ...editingMachineData, descricao: value })
                                                                 }
+                                                                onChange={(_, value) => {
+                                                                    if (!value) {
+                                                                        setEditingMachineData({ ...editingMachineData, descricao: "" });
+                                                                        return;
+                                                                    }
+                                                                    setEditingMachineData({ ...editingMachineData, descricao: value });
+                                                                }}
+                                                                renderInput={(params) => <TextField {...params} placeholder="Descrição" />}
                                                             />
                                                         </Grid>
 
                                                         <Grid item xs={12} sm={4}>
-                                                            <TextField
+                                                            {/* <TextField
                                                                 size="small"
                                                                 fullWidth
                                                                 label="Status"
@@ -841,21 +865,36 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                         status: e.target.value,
                                                                     })
                                                                 }
+                                                            /> */}
+                                                            <Autocomplete
+                                                                freeSolo
+                                                                size="small"
+                                                                options={predefinedCamp.equipament.status}
+                                                                inputValue={editingMachineData.status}
+                                                                onChange={(_, e) => {
+                                                                    if (!e) return;
+                                                                    setEditingMachineData({
+                                                                        ...editingMachineData,
+                                                                        status: e,
+                                                                    });
+                                                                }}
+                                                                renderInput={(params) => <TextField {...params} placeholder="status" />}
                                                             />
                                                         </Grid>
 
                                                         <Grid item xs={12} sm={4}>
-                                                            <TextField
+                                                            <Autocomplete
+                                                                freeSolo
                                                                 size="small"
-                                                                fullWidth
-                                                                label="Marca"
-                                                                value={editingMachineData.marca || ""}
-                                                                onChange={(e) =>
+                                                                options={predefinedCamp.equipament.marca}
+                                                                inputValue={editingMachineData.marca || ""}
+                                                                onChange={(_, e) =>
                                                                     setEditingMachineData({
                                                                         ...editingMachineData,
-                                                                        marca: e.target.value,
+                                                                        marca: e,
                                                                     })
                                                                 }
+                                                                renderInput={(params) => <TextField {...params} placeholder="Marca" />}
                                                             />
                                                         </Grid>
 
@@ -1016,7 +1055,23 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                 <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5 }}>
                                     <Grid container spacing={1.5}>
                                         <Grid item xs={12} sm={6}>
-                                            <TextField
+                                            <Autocomplete
+                                                freeSolo
+                                                size="small"
+                                                options={predefinedCamp.equipament.SIMB}
+                                                inputValue={editingMachineData.simb}
+                                                onInputChange={(_, value) => {
+                                                    if (typeof value !== "string") return;
+
+                                                    const v = value.replace(/^E?/i, "");
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        simb: v,
+                                                    });
+                                                }}
+                                                renderInput={(params) => <TextField {...params} placeholder="Simb" />}
+                                            />
+                                            {/* <TextField
                                                 type="text"
                                                 size="small"
                                                 fullWidth
@@ -1030,33 +1085,54 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                         simb: `E${value}`,
                                                     });
                                                 }}
-                                            />
+                                            /> */}
                                         </Grid>
                                         <Grid item xs={12} sm={6}>
-                                            <TextField
+                                            <Autocomplete
+                                                freeSolo
                                                 size="small"
-                                                fullWidth
-                                                label="Descrição"
+                                                options={predefinedCamp.equipament.description}
                                                 value={editingMachineData.descricao}
-                                                onChange={(e) => setEditingMachineData({ ...editingMachineData, descricao: e.target.value })}
+                                                onInputChange={(_, value) => setEditingMachineData({ ...editingMachineData, descricao: value })}
+                                                onChange={(_, value) => {
+                                                    if (!value) {
+                                                        setEditingMachineData({ ...editingMachineData, descricao: "" });
+                                                        return;
+                                                    }
+                                                    setEditingMachineData({ ...editingMachineData, descricao: value });
+                                                }}
+                                                renderInput={(params) => <TextField {...params} placeholder="Descrição" />}
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
-                                            <TextField
+                                            <Autocomplete
+                                                freeSolo
                                                 size="small"
-                                                fullWidth
-                                                label="Status"
-                                                value={editingMachineData.status}
-                                                onChange={(e) => setEditingMachineData({ ...editingMachineData, status: e.target.value })}
+                                                options={predefinedCamp.equipament.status}
+                                                inputValue={editingMachineData.status}
+                                                onChange={(_, e) => {
+                                                    if (!e) return;
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        status: e,
+                                                    });
+                                                }}
+                                                renderInput={(params) => <TextField {...params} placeholder="Status" />}
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
-                                            <TextField
+                                            <Autocomplete
+                                                freeSolo
                                                 size="small"
-                                                fullWidth
-                                                label="Marca"
-                                                value={editingMachineData.marca || ""}
-                                                onChange={(e) => setEditingMachineData({ ...editingMachineData, marca: e.target.value })}
+                                                options={predefinedCamp.equipament.marca}
+                                                inputValue={editingMachineData.marca || ""}
+                                                onChange={(_, e) =>
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        marca: e,
+                                                    })
+                                                }
+                                                renderInput={(params) => <TextField {...params} placeholder="Marca" />}
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>

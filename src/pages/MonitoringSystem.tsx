@@ -276,13 +276,9 @@ export default function MonitoringSystem() {
                 sx={{
                     bgcolor: "white",
                     borderBottom: "1px solid #ddd",
-
                     display: "flex",
-
                     justifyContent: "space-between",
-
                     alignItems: "center",
-
                     px: 3,
                 }}
             >
@@ -466,6 +462,7 @@ export default function MonitoringSystem() {
 
             {showForm && (
                 <InstitutionForm
+                    allData={institutions}
                     institution={editingInstitution}
                     onSave={handleSave}
                     onCancel={() => {
@@ -480,6 +477,7 @@ export default function MonitoringSystem() {
 
             {viewingInstitution && (
                 <InstitutionForm
+                    allData={institutions}
                     institution={viewingInstitution}
                     readOnly
                     onSave={() => {}}
