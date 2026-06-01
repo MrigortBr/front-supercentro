@@ -17,9 +17,10 @@ import {
     Snackbar,
     Paper,
     CircularProgress,
+    Chip,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Save, Settings, Calendar } from "lucide-react";
+import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, CheckCircle2, CalendarClock, Clock3 } from "lucide-react";
 
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
@@ -29,6 +30,7 @@ import Footer from "../components/Footer";
 import { Institution, ViewType, InstitutionStatus } from "../types";
 
 import { api } from "../service";
+import { ParagraphCustom } from "./styled";
 
 export default function MonitoringSystem() {
     const [institutions, setInstitutions] = useState<Institution[]>([]);
@@ -414,6 +416,48 @@ export default function MonitoringSystem() {
 
                 {currentView === "gantt" && (
                     <Paper sx={{ overflow: "auto", width: "70vw", mx: "auto" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 1,
+                                justifyContent: "center",
+                                flexWrap: "wrap",
+                                p: 2,
+                                borderBottom: "1px solid #e0e0e0",
+                                bgcolor: "#fafafa",
+                            }}
+                        >
+                            <Chip
+                                icon={<Clock3 size={16} color="Black" />}
+                                label="Em andamento"
+                                sx={{
+                                    bgcolor: "#1351B4",
+                                    color: "white",
+                                    fontWeight: 600,
+                                }}
+                            />
+
+                            <Chip
+                                icon={<CalendarClock size={16} color="Black" />}
+                                label="Planejado"
+                                sx={{
+                                    bgcolor: "#FF8C00",
+                                    color: "white",
+                                    fontWeight: 600,
+                                }}
+                            />
+
+                            <Chip
+                                icon={<CheckCircle2 size={16} color="Black" />}
+                                label="Concluído"
+                                sx={{
+                                    bgcolor: "#168821",
+                                    color: "white",
+                                    fontWeight: 600,
+                                }}
+                            />
+                        </Box>
+
                         <GanttChart institutions={filteredInstitutions} />
                     </Paper>
                 )}
