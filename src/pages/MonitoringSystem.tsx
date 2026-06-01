@@ -30,7 +30,6 @@ import Footer from "../components/Footer";
 import { Institution, ViewType, InstitutionStatus } from "../types";
 
 import { api } from "../service";
-import { ParagraphCustom } from "./styled";
 
 export default function MonitoringSystem() {
     const [institutions, setInstitutions] = useState<Institution[]>([]);
