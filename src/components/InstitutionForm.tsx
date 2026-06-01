@@ -826,7 +826,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                     const v = value.replace(/^E?/i, "");
                                                                     setEditingMachineData({
                                                                         ...editingMachineData,
-                                                                        simb: v,
+                                                                        simb: `E${v}`,
                                                                     });
                                                                 }}
                                                                 renderInput={(params) => <TextField {...params} placeholder="Simb" />}
@@ -1066,7 +1066,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                     const v = value.replace(/^E?/i, "");
                                                     setEditingMachineData({
                                                         ...editingMachineData,
-                                                        simb: v,
+                                                        simb: `E${v}`,
                                                     });
                                                 }}
                                                 renderInput={(params) => <TextField {...params} placeholder="Simb" />}
