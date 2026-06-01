@@ -83,7 +83,7 @@ const PREDEFINED_ACTIVITIES: { name: string; responsible: string }[] = [
     { name: "Entrega Scanner", responsible: "ACC" },
     { name: "Visita Técnica", responsible: "ACC" },
     { name: "Visita do Ministério", responsible: "MS" },
-    { name: "Apresentação da arquitetura do sistema para implantação", responsible: "ACC" },
+    { name: "Apresentação da arquitetura do Sistema para Implantação", responsible: "ACC" },
     { name: "Início e finalização das obras (construção/adequação) do laboratório", responsible: "Estado" },
     { name: "Mapeamento dos processos na unidade - APLIS", responsible: "ACC" },
     { name: "Aquisição de equipamentos", responsible: "ACC" },
