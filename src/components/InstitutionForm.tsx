@@ -460,7 +460,11 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                 size="small"
                                                                 fullWidth
                                                                 type="date"
-                                                                value={editingActivityData.start_date || ""}
+                                                                value={
+                                                                    editingActivityData.start_date
+                                                                        ? new Date(editingActivityData.start_date).toISOString().split("T")[0]
+                                                                        : ""
+                                                                }
                                                                 onChange={(e) => {
                                                                     const newStartDate = e.target.value;
 
@@ -488,7 +492,11 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                     max: editingActivityData.end_date || undefined,
                                                                 }}
                                                                 type="date"
-                                                                value={editingActivityData.end_date || ""}
+                                                                value={
+                                                                    editingActivityData.end_date
+                                                                        ? new Date(editingActivityData.end_date).toISOString().split("T")[0]
+                                                                        : ""
+                                                                }
                                                                 onChange={(e) => {
                                                                     const newEndDate = e.target.value;
 
@@ -598,8 +606,8 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                             >
                                                                 <Calendar size={11} />
                                                                 <Typography variant="caption" sx={{ color: "#168821", fontSize: "0.65rem" }}>
-                                                                    {new Date(activity.start_date).toLocaleDateString("pt-BR")} –{" "}
-                                                                    {new Date(activity.end_date).toLocaleDateString("pt-BR")}
+                                                                    {activity.start_date?.split("T")[0].split("-").reverse().join("/")} –{" "}
+                                                                    {activity.end_date?.split("T")[0].split("-").reverse().join("/")}
                                                                 </Typography>
                                                             </Box>
                                                         )}
