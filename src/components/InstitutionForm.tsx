@@ -75,7 +75,7 @@ const emptyEquipament: InstitutionEquipment = {
     simb: "",
     status: "",
     marca: "",
-    previsao_entrega: new Date(),
+    previsao_entrega: undefined,
     created_at: new Date(),
 };
 
@@ -128,6 +128,22 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [loadingUpload, setLoadingUpload] = useState(false);
     const [previewPhoto, setPreviewPhoto] = useState<InstitutionPhoto | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
+
+    const formatValue = (value: unknown) => {
+        if (!value) return "";
+
+        if (value instanceof Date) {
+            return value.toLocaleDateString("pt-BR");
+        }
+
+        if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}/.test(value)) {
+            return new Date(value).toLocaleDateString("pt-BR", {
+                timeZone: "UTC",
+            });
+        }
+
+        return String(value);
+    };
 
     const photoToDataUrl = (photo: InstitutionPhoto): string => {
         const mt = photo.mime_type || "image/jpeg";
@@ -913,7 +929,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                         return (
                                                             <Chip
                                                                 key={key}
-                                                                label={`${key}: ${value instanceof Date ? value.toLocaleDateString("pt-BR") : value}`}
+                                                                label={`${key}: ${formatValue(value)}`}
                                                                 size="small"
                                                                 sx={{
                                                                     bgcolor: chipColors[key] || "#999",
