@@ -5,6 +5,7 @@ export type InstitutionStatus = "Não iniciado" | "Em andamento" | "Concluído" 
 export interface Activity {
     name: string;
     responsible: string;
+    observation?: string;
     start_date: string;
     end_date: string;
     status: ActivityStatus;
