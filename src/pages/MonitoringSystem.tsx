@@ -205,7 +205,7 @@ export default function MonitoringSystem() {
                                     display: { xs: "none", sm: "block" },
                                 }}
                             >
-                                Supercentro Brasil para diagnótico do câncer
+                                Super Centro Brasil para Diagnóstico do Câncer
                             </Typography>
                         </Box>
                     </Box>
