@@ -31,9 +31,10 @@ interface InstitutionCardProps {
   onView: (institution: Institution) => void;
   onEdit: (institution: Institution) => void;
   onDelete: (id: number) => void;
+  minHeight?: number;
 }
 
-export default function InstitutionCard({ institution, onView, onEdit, onDelete }: InstitutionCardProps) {
+export default function InstitutionCard({ institution, onView, onEdit, onDelete, minHeight }: InstitutionCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [exportDialogOpen, setExportDialogOpen] = useState(false);
 
@@ -50,7 +51,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
   };
 
   return (
-    <Card onClick={() => onView(institution)} sx={{ overflow: 'hidden', cursor: 'pointer', '&:hover': { boxShadow: 4 } }}>
+    <Card onClick={() => onView(institution)} sx={{ overflow: 'hidden', cursor: 'pointer', minHeight: minHeight ? minHeight : undefined, display: 'flex', flexDirection: 'column', '&:hover': { boxShadow: 4 } }}>
       {/* Card Header */}
       <Box sx={{ p: '1.25rem', bgcolor: '#f8f9fa', borderBottom: '1px solid #dee2e6' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
@@ -117,7 +118,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
       </Box>
 
       {/* Card Body */}
-      <CardContent sx={{ p: '1.25rem !important' }}>
+      <CardContent sx={{ p: '1.25rem !important', flex: 1 }}>
         <Box sx={{ display: 'flex', gap: 0.5, mb: 1.5, fontSize: '0.925rem' }}>
           <Typography variant="body2" sx={{ color: '#666', fontWeight: 500, minWidth: 100 }}>
             Estado:

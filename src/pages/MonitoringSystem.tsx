@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -50,6 +50,20 @@ export default function MonitoringSystem() {
     const [filterStatus, setFilterStatus] = useState<InstitutionStatus | "all">("all");
 
     const [saveSnackbar, setSaveSnackbar] = useState(false);
+
+    const [maxCardHeight, setMaxCardHeight] = useState<number>(0);
+    const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
+
+    const setCardRef = useCallback((id: number, el: HTMLDivElement | null) => {
+        if (el) cardRefs.current.set(id, el);
+        else cardRefs.current.delete(id);
+    }, []);
+
+    useLayoutEffect(() => {
+        const heights = Array.from(cardRefs.current.values()).map((el) => el.offsetHeight);
+        const max = heights.length > 0 ? Math.max(...heights) : 0;
+        setMaxCardHeight(max);
+    }, [institutions, searchTerm, filterStatus]);
 
     const loadData = async () => {
         try {
@@ -839,7 +853,9 @@ export default function MonitoringSystem() {
                             <Grid container spacing={2}>
                                 {filteredInstitutions.map((institution) => (
                                     <Grid item xs={12} md={6} xl={4} key={institution.id}>
-                                        <InstitutionCard institution={institution} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
+                                        <div ref={(el) => setCardRef(institution.id, el)}>
+                                            <InstitutionCard institution={institution} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} minHeight={maxCardHeight || undefined} />
+                                        </div>
                                     </Grid>
                                 ))}
                             </Grid>
