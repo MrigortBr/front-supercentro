@@ -15,9 +15,11 @@ import {
   Calendar,
   ChevronDown,
   ChevronRight,
+  Printer,
 } from 'lucide-react';
 import { Institution } from '../types';
 import StatusChip from './StatusChip';
+import { exportInstitutionDetailPDF } from '../utils/exportInstitutionPDF';
 
 interface InstitutionCardProps {
   institution: Institution;
@@ -60,6 +62,20 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
         </Box>
 
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 0.5 }}>
+          <IconButton
+            size="small"
+            title="Exportar PDF"
+            onClick={(e) => { e.stopPropagation(); exportInstitutionDetailPDF(institution); }}
+            sx={{
+              border: '1px solid #dee2e6',
+              borderRadius: 1,
+              bgcolor: 'white',
+              color: '#666',
+              '&:hover': { bgcolor: '#f0fff4', color: '#168821', borderColor: '#168821' },
+            }}
+          >
+            <Printer size={16} />
+          </IconButton>
           <IconButton
             size="small"
             onClick={(e) => { e.stopPropagation(); onEdit(institution); }}
@@ -173,6 +189,11 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                             {new Date(activity.end_date).toLocaleDateString('pt-BR')}
                           </Typography>
                         </Box>
+                      )}
+                      {activity.observations && (
+                        <Typography variant="caption" sx={{ display: 'block', mt: 0.5, color: '#555', fontStyle: 'italic' }}>
+                          {activity.observations}
+                        </Typography>
                       )}
                     </Box>
                   );

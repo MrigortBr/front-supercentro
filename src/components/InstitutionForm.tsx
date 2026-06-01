@@ -65,7 +65,7 @@ const BRAZIL_STATES = [
     "TO",
 ];
 
-const emptyActivity: Activity = { name: "", responsible: "", start_date: "", end_date: "", status: "Projetado" };
+const emptyActivity: Activity = { name: "", responsible: "", start_date: "", end_date: "", status: "Projetado", observations: "" };
 
 const emptyEquipament: InstitutionEquipment = {
     descricao: "",
@@ -266,8 +266,8 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
             responsible,
             status,
             observations,
-            activities: formData.activities.map(({ name, responsible, start_date, end_date, status }) => ({
-                name, responsible, start_date, end_date, status,
+            activities: formData.activities.map(({ name, responsible, start_date, end_date, status, observations }) => ({
+                name, responsible, start_date, end_date, status, observations,
             })),
             machine: formData.machine.map(({ simb, descricao, status, marca, quantidade, previsao_entrega }) => ({
                 simb, descricao, status, marca, quantidade, previsao_entrega,
@@ -433,6 +433,17 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                             }
                                                         />
                                                     </Grid>
+                                                    <Grid item xs={12}>
+                                                        <TextField
+                                                            size="small"
+                                                            fullWidth
+                                                            placeholder="Observações"
+                                                            value={editingActivityData.observations || ""}
+                                                            onChange={(e) =>
+                                                                setEditingActivityData({ ...editingActivityData, observations: e.target.value })
+                                                            }
+                                                        />
+                                                    </Grid>
                                                 </Grid>
                                                 <Grid container spacing={1.5} alignItems="flex-end">
                                                     <Grid item xs={12} sm={3}>
@@ -575,6 +586,11 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                         </Box>
                                                     )}
                                                 </Box>
+                                                {activity.observations && (
+                                                    <Typography variant="caption" sx={{ display: "block", mt: 0.75, color: "#555", fontStyle: "italic" }}>
+                                                        {activity.observations}
+                                                    </Typography>
+                                                )}
                                             </Box>
                                             {!readOnly && (
                                                 <Box sx={{ display: "flex", gap: 0.5, flexShrink: 0 }}>
@@ -644,6 +660,15 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                             placeholder="Responsável"
                                             value={newActivity.responsible}
                                             onChange={(e) => setNewActivity({ ...newActivity, responsible: e.target.value })}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            placeholder="Observações"
+                                            value={newActivity.observations || ""}
+                                            onChange={(e) => setNewActivity({ ...newActivity, observations: e.target.value })}
                                         />
                                     </Grid>
                                 </Grid>
