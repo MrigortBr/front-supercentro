@@ -195,8 +195,7 @@ export default function MonitoringSystem() {
                 m.previsao_entrega ? formatDate(String(m.previsao_entrega)) : "—",
             ]);
 
-            const estimatedH = 14 + (activitiesRows.length > 0 ? activitiesRows.length * 8 + 18 : 0) + (equipRows.length > 0 ? equipRows.length * 8 + 18 : 0) + 10;
-            if (y + estimatedH > pageHeight - 15) { doc.addPage(); y = margin; }
+            if (y + 30 > pageHeight - 15) { doc.addPage(); y = margin; }
 
             const [r, g, b] = statusColors[inst.status] || [100, 100, 100];
             doc.setFillColor(r, g, b);
