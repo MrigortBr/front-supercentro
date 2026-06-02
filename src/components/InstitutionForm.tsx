@@ -1121,7 +1121,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                         status: e,
                                                     });
                                                 }}
-                                                renderInput={(params) => <TextField {...params} placeholder="Statuaaaas" />}
+                                                renderInput={(params) => <TextField {...params} placeholder="Status" />}
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
