@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, useLayoutEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -19,9 +19,10 @@ import {
     Snackbar,
     Paper,
     CircularProgress,
+    Chip,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Save, Settings, Calendar } from "lucide-react";
+import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
 
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
@@ -51,19 +52,6 @@ export default function MonitoringSystem() {
 
     const [saveSnackbar, setSaveSnackbar] = useState(false);
 
-    const [maxCardHeight, setMaxCardHeight] = useState<number>(0);
-    const cardRefs = useRef<Map<number, HTMLDivElement>>(new Map());
-
-    const setCardRef = useCallback((id: number, el: HTMLDivElement | null) => {
-        if (el) cardRefs.current.set(id, el);
-        else cardRefs.current.delete(id);
-    }, []);
-
-    useLayoutEffect(() => {
-        const heights = Array.from(cardRefs.current.values()).map((el) => el.offsetHeight);
-        const max = heights.length > 0 ? Math.max(...heights) : 0;
-        setMaxCardHeight(max);
-    }, [institutions, searchTerm, filterStatus]);
 
     const loadData = async () => {
         try {
@@ -726,13 +714,9 @@ export default function MonitoringSystem() {
                 sx={{
                     bgcolor: "white",
                     borderBottom: "1px solid #ddd",
-
                     display: "flex",
-
                     justifyContent: "space-between",
-
                     alignItems: "center",
-
                     px: 3,
                 }}
             >
@@ -853,9 +837,7 @@ export default function MonitoringSystem() {
                             <Grid container spacing={2}>
                                 {filteredInstitutions.map((institution) => (
                                     <Grid item xs={12} md={6} xl={4} key={institution.id}>
-                                        <div ref={(el) => setCardRef(institution.id, el)}>
-                                            <InstitutionCard institution={institution} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} minHeight={maxCardHeight || undefined} />
-                                        </div>
+                                        <InstitutionCard institution={institution} onView={handleView} onEdit={handleEdit} onDelete={handleDelete} />
                                     </Grid>
                                 ))}
                             </Grid>
@@ -865,6 +847,33 @@ export default function MonitoringSystem() {
 
                 {currentView === "gantt" && (
                     <Paper sx={{ overflow: "auto", width: "70vw", mx: "auto" }}>
+                        <Box
+                            sx={{
+                                display: "flex",
+                                gap: 1,
+                                justifyContent: "center",
+                                flexWrap: "wrap",
+                                p: 2,
+                                borderBottom: "1px solid #e0e0e0",
+                                bgcolor: "#fafafa",
+                            }}
+                        >
+                            <Chip
+                                icon={<Clock3 size={16} color="white" />}
+                                label="Em andamento"
+                                sx={{ bgcolor: "#1351B4", color: "white", fontWeight: 600 }}
+                            />
+                            <Chip
+                                icon={<CalendarClock size={16} color="white" />}
+                                label="Planejado"
+                                sx={{ bgcolor: "#FF8C00", color: "white", fontWeight: 600 }}
+                            />
+                            <Chip
+                                icon={<CheckCircle2 size={16} color="white" />}
+                                label="Concluído"
+                                sx={{ bgcolor: "#168821", color: "white", fontWeight: 600 }}
+                            />
+                        </Box>
                         <GanttChart institutions={filteredInstitutions} />
                     </Paper>
                 )}
@@ -874,6 +883,7 @@ export default function MonitoringSystem() {
 
             {showForm && (
                 <InstitutionForm
+                    allData={institutions}
                     institution={editingInstitution}
                     onSave={handleSave}
                     onCancel={() => {
@@ -888,6 +898,7 @@ export default function MonitoringSystem() {
 
             {viewingInstitution && (
                 <InstitutionForm
+                    allData={institutions}
                     institution={viewingInstitution}
                     readOnly
                     onSave={() => {}}
