@@ -871,6 +871,9 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                 size="small"
                                                                 options={predefinedCamp.equipament.status}
                                                                 inputValue={editingMachineData.status}
+                                                                onInputChange={(_, value) =>
+                                                                    setEditingMachineData({ ...editingMachineData, status: value })
+                                                                }
                                                                 onChange={(_, e) => {
                                                                     if (!e) return;
                                                                     setEditingMachineData({
@@ -1110,6 +1113,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 size="small"
                                                 options={predefinedCamp.equipament.status}
                                                 inputValue={editingMachineData.status}
+                                                onInputChange={(_, value) => setEditingMachineData({ ...editingMachineData, status: value })}
                                                 onChange={(_, e) => {
                                                     if (!e) return;
                                                     setEditingMachineData({
@@ -1117,7 +1121,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                         status: e,
                                                     });
                                                 }}
-                                                renderInput={(params) => <TextField {...params} placeholder="Status" />}
+                                                renderInput={(params) => <TextField {...params} placeholder="Statuaaaas" />}
                                             />
                                         </Grid>
                                         <Grid item xs={12} sm={4}>
