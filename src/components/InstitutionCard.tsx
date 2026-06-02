@@ -1,5 +1,19 @@
 import { useState } from "react";
-import { Card, CardContent, Box, Typography, IconButton, Collapse, Divider, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import {
+    Card,
+    CardContent,
+    Box,
+    Typography,
+    IconButton,
+    Collapse,
+    Divider,
+    Chip,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+} from "@mui/material";
 import { Edit2, Trash2, Calendar, ChevronDown, ChevronRight, Printer } from "lucide-react";
 import { Institution } from "../types";
 import StatusChip from "./StatusChip";
@@ -29,7 +43,10 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
     };
 
     return (
-        <Card onClick={() => onView(institution)} sx={{ overflow: "hidden", cursor: "pointer", height: "25rem", display: "flex", flexDirection: "column", "&:hover": { boxShadow: 4 } }}>
+        <Card
+            onClick={() => onView(institution)}
+            sx={{ overflow: "hidden", cursor: "pointer", height: "18rem", display: "flex", flexDirection: "column", "&:hover": { boxShadow: 4 } }}
+        >
             {/* Card Header */}
             <Box sx={{ p: "1.25rem", bgcolor: "#f8f9fa", borderBottom: "1px solid #dee2e6" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -55,7 +72,10 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     <IconButton
                         size="small"
                         title="Exportar PDF"
-                        onClick={(e) => { e.stopPropagation(); setExportDialogOpen(true); }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setExportDialogOpen(true);
+                        }}
                         sx={{
                             border: "1px solid #dee2e6",
                             borderRadius: 1,
@@ -121,16 +141,25 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
                         Observações:
                     </Typography>
-                    <Typography
-                        variant="body2"
+
+                    <Box
                         sx={{
-                            color: institution.observations ? "#495057" : "#adb5bd",
-                            lineHeight: 1.5,
-                            fontStyle: institution.observations ? "normal" : "italic",
+                            maxHeight: 50,
+                            overflowY: "auto",
+                            flex: 1,
                         }}
                     >
-                        {institution.observations || "Nenhuma"}
-                    </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: institution.observations ? "#495057" : "#adb5bd",
+                                lineHeight: 1.5,
+                                fontStyle: institution.observations ? "normal" : "italic",
+                            }}
+                        >
+                            {institution.observations || "Nenhuma"}
+                        </Typography>
+                    </Box>
                 </Box>
             </CardContent>
 
@@ -142,7 +171,9 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => handleExport(false)}>Sem Gantt</Button>
-                    <Button onClick={() => handleExport(true)} variant="contained">Com Gantt</Button>
+                    <Button onClick={() => handleExport(true)} variant="contained">
+                        Com Gantt
+                    </Button>
                 </DialogActions>
             </Dialog>
 
