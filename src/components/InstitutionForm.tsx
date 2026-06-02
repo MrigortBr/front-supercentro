@@ -939,6 +939,17 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                     textTransform: "uppercase",
                                                                     height: 20,
                                                                     margin: "0.2rem",
+                                                                options={predefinedCamp.equipament.status}
+                                                                inputValue={editingMachineData.status}
+                                                                onInputChange={(_, value) =>
+                                                                    setEditingMachineData({ ...editingMachineData, status: value })
+                                                                }
+                                                                onChange={(_, e) => {
+                                                                    if (!e) return;
+                                                                    setEditingMachineData({
+                                                                        ...editingMachineData,
+                                                                        status: e,
+                                                                    });
                                                                 }}
                                                             />
                                                         );
@@ -1147,6 +1158,79 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                 className="del-btn"
                                                 size="small"
                                                 onClick={(e) => { e.stopPropagation(); handleDeletePhoto(photo.id); }}
+                                                options={predefinedCamp.equipament.status}
+                                                inputValue={editingMachineData.status}
+                                                onInputChange={(_, value) => setEditingMachineData({ ...editingMachineData, status: value })}
+                                                onChange={(_, e) => {
+                                                    if (!e) return;
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        status: e,
+                                                    });
+                                                }}
+                                                renderInput={(params) => <TextField {...params} placeholder="Status" />}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={4}>
+                                            <Autocomplete
+                                                freeSolo
+                                                size="small"
+                                                options={predefinedCamp.equipament.marca}
+                                                inputValue={editingMachineData.marca || ""}
+                                                onInputChange={(_, value) => {
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        marca: value,
+                                                    });
+                                                }}
+                                                onChange={(_, value) => {
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        marca: value ?? "",
+                                                    });
+                                                }}
+                                                renderInput={(params) => <TextField {...params} placeholder="Marca" />}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={4}>
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                type="number"
+                                                label="Quantidade"
+                                                value={editingMachineData.quantidade}
+                                                onChange={(e) => setEditingMachineData({ ...editingMachineData, quantidade: Number(e.target.value) })}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={9}>
+                                            <Typography variant="caption" sx={{ display: "block", color: "#666", mb: 0.5, fontWeight: 500 }}>
+                                                Previsão Entrega
+                                            </Typography>
+                                            <TextField
+                                                size="small"
+                                                fullWidth
+                                                type="date"
+                                                value={
+                                                    editingMachineData.previsao_entrega instanceof Date &&
+                                                    !isNaN(editingMachineData.previsao_entrega.getTime())
+                                                        ? editingMachineData.previsao_entrega.toISOString().split("T")[0]
+                                                        : ""
+                                                }
+                                                onChange={(e) =>
+                                                    setEditingMachineData({
+                                                        ...editingMachineData,
+                                                        previsao_entrega: e.target.value ? new Date(e.target.value) : undefined,
+                                                    })
+                                                }
+                                                InputLabelProps={{ shrink: true }}
+                                            />
+                                        </Grid>
+                                        <Grid item xs={12} sm={3} sx={{ display: "flex", alignItems: "flex-end" }}>
+                                            <Button
+                                                variant="outlined"
+                                                fullWidth
+                                                startIcon={<Plus size={16} />}
+                                                onClick={addMachine}
                                                 sx={{
                                                     position: "absolute",
                                                     top: 4,
