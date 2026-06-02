@@ -1,9 +1,9 @@
 import { useState } from "react";
-import { Card, CardContent, Box, Typography, IconButton, Collapse, Divider, Chip, Button } from "@mui/material";
-import { Edit2, Trash2, Calendar, ChevronDown, ChevronRight } from "lucide-react";
+import { Card, CardContent, Box, Typography, IconButton, Collapse, Divider, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import { Edit2, Trash2, Calendar, ChevronDown, ChevronRight, Printer } from "lucide-react";
 import { Institution } from "../types";
 import StatusChip from "./StatusChip";
-import PictureAsPdfIcon from "@mui/icons-material/PictureAsPdf";
+import { exportInstitutionDetailPDF } from "../utils/exportInstitutionPDF";
 
 interface InstitutionCardProps {
     institution: Institution;
@@ -14,6 +14,12 @@ interface InstitutionCardProps {
 
 export default function InstitutionCard({ institution, onView, onEdit, onDelete }: InstitutionCardProps) {
     const [isExpanded, setIsExpanded] = useState(false);
+    const [exportDialogOpen, setExportDialogOpen] = useState(false);
+
+    const handleExport = (withGantt: boolean) => {
+        setExportDialogOpen(false);
+        exportInstitutionDetailPDF(institution, withGantt);
+    };
 
     const activityStatusColors: Record<string, { bg: string; color: string }> = {
         Concluído: { bg: "#168821", color: "#fff" },
@@ -23,7 +29,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
     };
 
     return (
-        <Card onClick={() => onView(institution)} sx={{ overflow: "hidden", cursor: "pointer", "&:hover": { boxShadow: 4 } }}>
+        <Card onClick={() => onView(institution)} sx={{ overflow: "hidden", cursor: "pointer", height: "25rem", display: "flex", flexDirection: "column", "&:hover": { boxShadow: 4 } }}>
             {/* Card Header */}
             <Box sx={{ p: "1.25rem", bgcolor: "#f8f9fa", borderBottom: "1px solid #dee2e6" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -42,29 +48,24 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                         {institution.name}
                     </Typography>
 
-                    <Button
-                        size="small"
-                        variant="outlined"
-                        startIcon={<PictureAsPdfIcon />}
-                        sx={{
-                            color: "#168821",
-                            borderColor: "#168821",
-                            fontWeight: 600,
-                            textTransform: "none",
-                            borderRadius: "20px",
-                            "&:hover": {
-                                borderColor: "#168821",
-                                backgroundColor: "rgba(13, 196, 31, 0.637)",
-                                color: "#023107",
-                            },
-                        }}
-                    >
-                        Exportar PDF
-                    </Button>
                     <StatusChip status={institution.status} />
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                    <IconButton
+                        size="small"
+                        title="Exportar PDF"
+                        onClick={(e) => { e.stopPropagation(); setExportDialogOpen(true); }}
+                        sx={{
+                            border: "1px solid #dee2e6",
+                            borderRadius: 1,
+                            bgcolor: "white",
+                            color: "#666",
+                            "&:hover": { bgcolor: "#f0fff4", color: "#168821", borderColor: "#168821" },
+                        }}
+                    >
+                        <Printer size={16} />
+                    </IconButton>
                     <IconButton
                         size="small"
                         onClick={(e) => {
@@ -132,6 +133,18 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     </Typography>
                 </Box>
             </CardContent>
+
+            {/* Export dialog */}
+            <Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)} onClick={(e) => e.stopPropagation()}>
+                <DialogTitle>Exportar PDF</DialogTitle>
+                <DialogContent>
+                    <Typography>Deseja incluir o Gantt da instituição no final do PDF?</Typography>
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={() => handleExport(false)}>Sem Gantt</Button>
+                    <Button onClick={() => handleExport(true)} variant="contained">Com Gantt</Button>
+                </DialogActions>
+            </Dialog>
 
             {/* Activities (expandable) */}
             <Collapse in={isExpanded}>
