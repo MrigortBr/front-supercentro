@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Card, CardContent, Box, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip } from "@mui/material";
+import { Card, CardContent, Box, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip, CircularProgress } from "@mui/material";
 import { Edit2, Trash2, Printer } from "lucide-react";
-import { Institution } from "../types";
+import { Activity, Institution } from "../types";
 import StatusChip from "./StatusChip";
 import { exportInstitutionDetailPDF } from "../utils/exportInstitutionPDF";
 
@@ -26,12 +26,31 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
     //     });
     // };
 
-    // const activityStatusColors: Record<string, { bg: string; color: string }> = {
-    //     Concluído: { bg: "#168821", color: "#fff" },
-    //     "Em andamento": { bg: "#1351B4", color: "#fff" },
-    //     Projetado: { bg: "#FF8C00", color: "#fff" },
-    //     Planejado: { bg: "#FF8C00", color: "#fff" },
-    // };
+    const calculateProgress = (activity: Activity): number => {
+        const start = new Date(activity.start_date).getTime();
+        const end = new Date(activity.end_date).getTime();
+        const now = Date.now();
+        if (end <= start) return 100;
+        if (now <= start) return 0;
+        if (now >= end) return 100;
+        return Math.round(((now - start) / (end - start)) * 100);
+    };
+
+    const activitiesWithDates = institution.activities.filter((a) => a.start_date && a.end_date);
+    const avgProgress =
+        activitiesWithDates.length > 0
+            ? Math.round(activitiesWithDates.reduce((sum, a) => sum + calculateProgress(a), 0) / activitiesWithDates.length)
+            : 0;
+
+    const institutionStatusColors: Record<string, string> = {
+        "Não iniciado": "#e9ecef",
+        "Em andamento": "#1351B4",
+        Concluído: "#168821",
+        Atrasado: "#E52207",
+        Pendente: "#FFCD07",
+    };
+
+    const progressColor = institutionStatusColors[institution.status] ?? "#1351B4";
 
     return (
         <Card
@@ -120,45 +139,71 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
             </Box>
 
             {/* Card Body */}
-            <CardContent sx={{ p: "1.25rem !important" }}>
-                <Box sx={{ display: "flex", gap: 0.5, mb: 1.5, fontSize: "0.925rem" }}>
-                    <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
-                        Estado:
-                    </Typography>
-                    <Typography variant="body2">{institution.state}</Typography>
-                </Box>
-
-                <Box sx={{ display: "flex", gap: 0.5, mb: 1.5, fontSize: "0.925rem" }}>
-                    <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
-                        Responsável:
-                    </Typography>
-                    <Typography variant="body2">{institution.responsible}</Typography>
-                </Box>
-
-                <Box sx={{ display: "flex", gap: 0.5 }}>
-                    <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
-                        Observações:
-                    </Typography>
-
-                    <Box
-                        sx={{
-                            maxHeight: 50,
-                            overflowY: "auto",
-                            flex: 1,
-                        }}
-                    >
-                        <Typography
-                            variant="body2"
-                            sx={{
-                                color: institution.observations ? "#495057" : "#adb5bd",
-                                lineHeight: 1.5,
-                                fontStyle: institution.observations ? "normal" : "italic",
-                            }}
-                        >
-                            {institution.observations || "Nenhuma"}
+            <CardContent sx={{ p: "1.25rem !important", display: "flex", gap: 2, alignItems: "flex-start" }}>
+                <Box sx={{ flex: 1 }}>
+                    <Box sx={{ display: "flex", gap: 0.5, mb: 1.5, fontSize: "0.925rem" }}>
+                        <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
+                            Estado:
                         </Typography>
+                        <Typography variant="body2">{institution.state}</Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 0.5, mb: 1.5, fontSize: "0.925rem" }}>
+                        <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
+                            Responsável:
+                        </Typography>
+                        <Typography variant="body2">{institution.responsible}</Typography>
+                    </Box>
+
+                    <Box sx={{ display: "flex", gap: 0.5 }}>
+                        <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
+                            Observações:
+                        </Typography>
+
+                        <Box sx={{ maxHeight: 50, overflowY: "auto", flex: 1 }}>
+                            <Typography
+                                variant="body2"
+                                sx={{
+                                    color: institution.observations ? "#495057" : "#adb5bd",
+                                    lineHeight: 1.5,
+                                    fontStyle: institution.observations ? "normal" : "italic",
+                                }}
+                            >
+                                {institution.observations || "Nenhuma"}
+                            </Typography>
+                        </Box>
                     </Box>
                 </Box>
+
+                {institution.activities.length > 0 && (
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
+                        <Box sx={{ position: "relative", display: "inline-flex" }}>
+                            <CircularProgress
+                                variant="determinate"
+                                value={avgProgress}
+                                size={58}
+                                thickness={4}
+                                sx={{ color: progressColor }}
+                            />
+                            <Box
+                                sx={{
+                                    position: "absolute",
+                                    inset: 0,
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                <Typography variant="caption" sx={{ fontWeight: 700, fontSize: "0.72rem" }}>
+                                    {avgProgress}%
+                                </Typography>
+                            </Box>
+                        </Box>
+                        <Typography variant="caption" sx={{ color: "#666", mt: 0.5, fontSize: "0.62rem" }}>
+                            Progresso
+                        </Typography>
+                    </Box>
+                )}
             </CardContent>
 
             {/* Export dialog */}

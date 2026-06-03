@@ -657,7 +657,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                             </Box>
                                                         )}
                                                         {activity.start_date && activity.end_date && (
-                                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1, marginLeft: "auto" }}>
                                                                 <Typography variant="caption" sx={{ minWidth: 40 }}>
                                                                     {progress}%
                                                                 </Typography>
