@@ -76,7 +76,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
                     <Chip
-                        label={new Date(latestEndDate(institution).end_date).toLocaleDateString("pt-BR")}
+                        label={"Previsão de entrega: " + new Date(latestEndDate(institution).end_date).toLocaleDateString("pt-BR")}
                         size={"small"}
                         sx={{
                             backgroundColor: "#FF8C00",
