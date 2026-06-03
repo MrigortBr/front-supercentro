@@ -273,7 +273,7 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 										borderRight: "1px solid #dee2e6",
 									}}
 								>
-									<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: { xs: "0.72rem", sm: "0.875rem" } }}>
+									<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: { xs: "0.72rem", sm: "0.875rem" }, wordBreak: "break-word", overflowWrap: "break-word" }}>
 										{inst.name}
 									</Typography>
 								</Box>
@@ -342,7 +342,7 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 												borderRight: "1px solid #dee2e6",
 											}}
 										>
-											<Typography variant="body2" sx={{ color: "#666", fontSize: { xs: "0.68rem", sm: "0.8rem" } }}>
+											<Typography variant="body2" sx={{ color: "#666", fontSize: { xs: "0.68rem", sm: "0.8rem" }, wordBreak: "break-word", overflowWrap: "break-word" }}>
 												{activity.name}
 											</Typography>
 										</Box>

@@ -59,12 +59,38 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
         >
             {/* Card Header */}
             <Box sx={{ p: "1.25rem", bgcolor: "#f8f9fa", borderBottom: "1px solid #dee2e6" }}>
-                <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
+                <Box sx={{ display: "flex", alignItems: "flex-start", gap: 1, mb: 1 }}>
                     <Typography variant="h3" sx={{ flex: 1, fontSize: "1.125rem", fontWeight: 600, color: "primary.main" }}>
                         {institution.name}
                     </Typography>
 
-                    <StatusChip status={institution.status} />
+                    {/* No mobile: coluna com status + chip de previsão. No desktop: só o status */}
+                    <Box sx={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 0.5, flexShrink: 0 }}>
+                        <StatusChip status={institution.status} sx={{ width: { xs: "100%", sm: "auto" } }} />
+                        {institution.datepreview && (
+                            <Chip
+                                label={
+                                    <Box sx={{ textAlign: "center" }}>
+                                        <Box>Previsão de Entrega:</Box>
+                                        <Box>{new Date(institution.datepreview).toLocaleDateString("pt-BR")}</Box>
+                                    </Box>
+                                }
+                                size={"small"}
+                                sx={{
+                                    display: { xs: "flex", sm: "none" },
+                                    backgroundColor: "#FF8C00",
+                                    color: "#ffffff",
+                                    fontWeight: 600,
+                                    textTransform: "uppercase",
+                                    letterSpacing: "0.05em",
+                                    borderRadius: "20px",
+                                    height: "auto",
+                                    width: "100%",
+                                    "& .MuiChip-label": { whiteSpace: "normal", py: "4px" },
+                                }}
+                            />
+                        )}
+                    </Box>
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
@@ -73,6 +99,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                             label={"Previsão de entrega: " + new Date(institution.datepreview).toLocaleDateString("pt-BR")}
                             size={"small"}
                             sx={{
+                                display: { xs: "none", sm: "flex" },
                                 backgroundColor: "#FF8C00",
                                 color: "#ffffff",
                                 fontWeight: 600,

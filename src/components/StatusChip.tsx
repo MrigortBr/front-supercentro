@@ -4,6 +4,7 @@ import { InstitutionStatus, ActivityStatus } from "../types";
 interface StatusChipProps {
     status: InstitutionStatus | ActivityStatus;
     size?: "small" | "medium";
+    sx?: object;
 }
 
 const institutionStatusColors: Record<InstitutionStatus, { bg: string; color: string }> = {
@@ -21,7 +22,7 @@ const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }
     Planejado: { bg: "#FF8C00", color: "#ffffff" },
 };
 
-export default function StatusChip({ status, size = "small" }: StatusChipProps) {
+export default function StatusChip({ status, size = "small", sx }: StatusChipProps) {
     const colors = (institutionStatusColors as Record<string, { bg: string; color: string }>)[status] ||
         (activityStatusColors as Record<string, { bg: string; color: string }>)[status] || { bg: "#e9ecef", color: "#495057" };
 
@@ -41,7 +42,9 @@ export default function StatusChip({ status, size = "small" }: StatusChipProps) 
                     py: "3px",
                     display: "block",
                     whiteSpace: "nowrap",
+                    textAlign: "center",
                 },
+                ...sx,
             }}
         />
     );
