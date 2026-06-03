@@ -20,8 +20,24 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
         exportInstitutionDetailPDF(institution, withGantt);
     };
 
+    // const latestEndDate = (i: Institution) => {
+    //     return i.activities.reduce((latest, activity) => {
+    //         return new Date(activity.end_date) > new Date(latest.end_date) ? activity : latest;
+    //     });
+    // };
+
+    const activityStatusColors: Record<string, { bg: string; color: string }> = {
+        Concluído: { bg: "#168821", color: "#fff" },
+        "Em andamento": { bg: "#1351B4", color: "#fff" },
+        Projetado: { bg: "#FF8C00", color: "#fff" },
+        Planejado: { bg: "#FF8C00", color: "#fff" },
+    };
+
     return (
-        <Card onClick={() => onView(institution)} sx={{ overflow: "hidden", cursor: "pointer", height: "25rem", display: "flex", flexDirection: "column", "&:hover": { boxShadow: 4 } }}>
+        <Card
+            onClick={() => onView(institution)}
+            sx={{ overflow: "hidden", cursor: "pointer", height: "18rem", display: "flex", flexDirection: "column", "&:hover": { boxShadow: 4 } }}
+        >
             {/* Card Header */}
             <Box sx={{ p: "1.25rem", bgcolor: "#f8f9fa", borderBottom: "1px solid #dee2e6" }}>
                 <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
@@ -33,10 +49,31 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                    {institution.datepreview ? (
+                        <Chip
+                            label={"Previsão de entrega: " + new Date(institution.datepreview).toLocaleDateString("pt-BR")}
+                            size={"small"}
+                            sx={{
+                                backgroundColor: "#FF8C00",
+                                color: "#ffffff",
+                                fontWeight: 600,
+                                textTransform: "uppercase",
+                                letterSpacing: "0.05em",
+                                borderRadius: "20px",
+                                marginRight: "auto",
+                            }}
+                        />
+                    ) : (
+                        <></>
+                    )}
+
                     <IconButton
                         size="small"
                         title="Exportar PDF"
-                        onClick={(e) => { e.stopPropagation(); setExportDialogOpen(true); }}
+                        onClick={(e) => {
+                            e.stopPropagation();
+                            setExportDialogOpen(true);
+                        }}
                         sx={{
                             border: "1px solid #dee2e6",
                             borderRadius: 1,
@@ -102,16 +139,25 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     <Typography variant="body2" sx={{ color: "#666", fontWeight: 500, minWidth: 100 }}>
                         Observações:
                     </Typography>
-                    <Typography
-                        variant="body2"
+
+                    <Box
                         sx={{
-                            color: institution.observations ? "#495057" : "#adb5bd",
-                            lineHeight: 1.5,
-                            fontStyle: institution.observations ? "normal" : "italic",
+                            maxHeight: 50,
+                            overflowY: "auto",
+                            flex: 1,
                         }}
                     >
-                        {institution.observations || "Nenhuma"}
-                    </Typography>
+                        <Typography
+                            variant="body2"
+                            sx={{
+                                color: institution.observations ? "#495057" : "#adb5bd",
+                                lineHeight: 1.5,
+                                fontStyle: institution.observations ? "normal" : "italic",
+                            }}
+                        >
+                            {institution.observations || "Nenhuma"}
+                        </Typography>
+                    </Box>
                 </Box>
             </CardContent>
 
@@ -123,7 +169,9 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 </DialogContent>
                 <DialogActions>
                     <Button onClick={() => handleExport(false)}>Sem Gantt</Button>
-                    <Button onClick={() => handleExport(true)} variant="contained">Com Gantt</Button>
+                    <Button onClick={() => handleExport(true)} variant="contained">
+                        Com Gantt
+                    </Button>
                 </DialogActions>
             </Dialog>
 

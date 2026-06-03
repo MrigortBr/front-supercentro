@@ -19,6 +19,7 @@ import {
     Divider,
     Autocomplete,
     CircularProgress,
+    LinearProgress,
 } from "@mui/material";
 import { Plus, Pencil, Trash2, Calendar, X, Upload } from "lucide-react";
 import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto } from "../types";
@@ -35,11 +36,13 @@ export interface InstitutionFormProps {
     allData: Institution[];
 }
 
-const activityStatusColors: Record<ActivityStatus, { bg: string; color: string }> = {
-    Concluído: { bg: "#168821", color: "#fff" },
-    "Em andamento": { bg: "#1351B4", color: "#fff" },
-    Projetado: { bg: "#FF8C00", color: "#fff" },
-    Planejado: { bg: "#FF8C00", color: "#fff" },
+type MuiColor = "primary" | "secondary" | "error" | "warning" | "info" | "success" | "inherit";
+
+const activityStatusColors: Record<ActivityStatus, { bg: string; color: string; colorMui: MuiColor }> = {
+    Concluído: { bg: "#168821", color: "#fff", colorMui: "success" },
+    "Em andamento": { bg: "#1351B4", color: "#fff", colorMui: "primary" },
+    Projetado: { bg: "#FF8C00", color: "#fff", colorMui: "warning" },
+    Planejado: { bg: "#FF8C00", color: "#fff", colorMui: "warning" },
 };
 
 export default function InstitutionForm({ institution, onSave, onCancel, onEdit, readOnly = false, allData }: InstitutionFormProps) {
@@ -47,7 +50,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [formData, setFormData] = useState<Omit<Institution, "id">>(
         institution
             ? { ...institution }
-            : { name: "", state: "", responsible: "", status: "Não iniciado", observations: "", activities: [], machine: [] }
+            : { name: "", state: "", responsible: "", status: "Não iniciado", observations: "", activities: [], machine: [], datepreview: new Date() }
     );
     const [newActivity, setNewActivity] = useState<Activity>({ ...PREDEFINED_BASE.activity.empty });
     const [editingActivityIdx, setEditingActivityIdx] = useState<number | null>(null);
@@ -149,6 +152,25 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
         }
     };
 
+    const calculateProgress = (activity: Activity): number => {
+        const start = new Date(activity.start_date).getTime();
+        const end = new Date(activity.end_date).getTime();
+        const now = Date.now();
+
+        // Evita divisão por zero
+        if (end <= start) return 100;
+
+        // Ainda não começou
+        if (now <= start) return 0;
+
+        // Já terminou
+        if (now >= end) return 100;
+
+        const progress = ((now - start) / (end - start)) * 100;
+
+        return Math.round(progress);
+    };
+
     useEffect(() => {
         const description = [...new Set(allData.flatMap((d) => d.machine.map((a) => a.descricao ?? "")).filter(Boolean))];
 
@@ -240,13 +262,14 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const { name, state, responsible, status, observations } = formData;
+        const { name, state, responsible, status, observations, datepreview } = formData;
         onSave({
             name,
             state,
             responsible,
             status,
             observations,
+            datepreview,
             activities: formData.activities.map(({ name, responsible, observation, start_date, end_date, status }) => ({
                 name,
                 responsible,
@@ -343,17 +366,35 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                         </Grid>
 
                         {/* Responsible */}
-                        <Box sx={{ mb: 2.5 }}>
-                            <TextField
-                                label="Responsável"
-                                fullWidth
-                                value={formData.responsible}
-                                onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
-                                placeholder="Ex: ACC"
-                                required
-                                disabled={readOnly}
-                            />
-                        </Box>
+                        <Grid container spacing={2} sx={{ mb: 2.5 }}>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    label="Responsável"
+                                    fullWidth
+                                    value={formData.responsible}
+                                    onChange={(e) => setFormData({ ...formData, responsible: e.target.value })}
+                                    placeholder="Ex: ACC"
+                                    required
+                                    disabled={readOnly}
+                                />
+                            </Grid>
+                            <Grid item xs={12} sm={6}>
+                                <TextField
+                                    type="date"
+                                    label="Data prevista"
+                                    fullWidth
+                                    value={formData.datepreview ? new Date(formData.datepreview).toISOString().split("T")[0] : ""}
+                                    onChange={(e) =>
+                                        setFormData({
+                                            ...formData,
+                                            datepreview: e.target.value ? new Date(e.target.value) : undefined,
+                                        })
+                                    }
+                                    disabled={readOnly}
+                                    InputLabelProps={{ shrink: true }}
+                                />
+                            </Grid>
+                        </Grid>
 
                         {/* Observations */}
                         <Box sx={{ mb: 2.5 }}>
@@ -381,6 +422,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                     {formData.activities.map((activity, idx) => {
                                         const colors = activityStatusColors[activity.status] || { bg: "#1351B4", color: "#fff" };
                                         const isEditing = editingActivityIdx === idx;
+                                        const progress = calculateProgress(activity);
 
                                         if (!readOnly && isEditing) {
                                             return (
@@ -612,6 +654,20 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                     {activity.start_date?.split("T")[0].split("-").reverse().join("/")} –{" "}
                                                                     {activity.end_date?.split("T")[0].split("-").reverse().join("/")}
                                                                 </Typography>
+                                                            </Box>
+                                                        )}
+                                                        {activity.start_date && activity.end_date && (
+                                                            <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+                                                                <Typography variant="caption" sx={{ minWidth: 40 }}>
+                                                                    {progress}%
+                                                                </Typography>
+                                                                <LinearProgress
+                                                                    variant="determinate"
+                                                                    color={colors.colorMui}
+                                                                    value={progress}
+                                                                    aria-label="Export data"
+                                                                    sx={{ width: "10dvw" }}
+                                                                />
                                                             </Box>
                                                         )}
                                                     </Box>
