@@ -2,14 +2,20 @@ export type ActivityStatus = "Projetado" | "Planejado" | "Em andamento" | "Concl
 
 export type InstitutionStatus = "Não iniciado" | "Em andamento" | "Concluído" | "Atrasado" | "Pendente";
 
+export interface ActivityObservation {
+    id?: number;
+    id_activities?: number;
+    date_observation: string;
+    text_observation: string;
+}
+
 export interface Activity {
     name: string;
     responsible: string;
-    observation?: string;
+    observation?: ActivityObservation[];
     start_date: string;
     end_date: string;
     status: ActivityStatus;
-    observations?: string;
 }
 
 export interface Institution {

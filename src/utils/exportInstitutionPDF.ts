@@ -414,10 +414,13 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
 
             // pre-measure observations lines
             let obsLines: string[] = [];
-            if (activity.observations) {
+            if (activity.observation && activity.observation.length > 0) {
                 doc.setFontSize(7.5);
                 doc.setFont("helvetica", "normal");
-                obsLines = doc.splitTextToSize(activity.observations, CW - 10) as string[];
+                const obsText = activity.observation
+                    .map((o) => `${new Date(o.date_observation).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.text_observation}`)
+                    .join(" | ");
+                obsLines = doc.splitTextToSize(obsText, CW - 10) as string[];
             }
             const obsH = obsLines.length > 0 ? obsLines.length * 4.5 + 3 : 0;
 

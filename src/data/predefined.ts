@@ -43,7 +43,6 @@ export type PredefinedBase = {
         }[];
         status: string[];
         empty: Activity;
-        observation: string[];
     };
     equipament: {
         SIMB: string[];
@@ -99,8 +98,7 @@ export const PREDEFINED_BASE: PredefinedBase = {
             { name: "Habilitação", responsible: "" },
         ],
         status: ["Projetado", "Em andamento", "Concluído"],
-        empty: { name: "", responsible: "", start_date: "", end_date: "", status: "Projetado", observation: "" },
-        observation: [""],
+        empty: { name: "", responsible: "", start_date: "", end_date: "", status: "Projetado", observation: [] },
     },
     equipament: {
         empty: {
