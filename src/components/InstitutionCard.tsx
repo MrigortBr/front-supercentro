@@ -219,7 +219,6 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     </Button>
                 </DialogActions>
             </Dialog>
-
         </Card>
     );
 }
