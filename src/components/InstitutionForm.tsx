@@ -386,7 +386,6 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                             datepreview: e.target.value ? new Date(e.target.value) : undefined,
                                         })
                                     }
-                                    required
                                     disabled={readOnly}
                                     InputLabelProps={{ shrink: true }}
                                 />
