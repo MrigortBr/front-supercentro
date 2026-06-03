@@ -35,6 +35,12 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
         exportInstitutionDetailPDF(institution, withGantt);
     };
 
+    const latestEndDate = (i: Institution) => {
+        return i.activities.reduce((latest, activity) => {
+            return new Date(activity.end_date) > new Date(latest.end_date) ? activity : latest;
+        });
+    };
+
     const activityStatusColors: Record<string, { bg: string; color: string }> = {
         Concluído: { bg: "#168821", color: "#fff" },
         "Em andamento": { bg: "#1351B4", color: "#fff" },
@@ -69,6 +75,19 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
+                    <Chip
+                        label={new Date(latestEndDate(institution).end_date).toLocaleDateString("pt-BR")}
+                        size={"small"}
+                        sx={{
+                            backgroundColor: "#FF8C00",
+                            color: "#ffffff",
+                            fontWeight: 600,
+                            textTransform: "uppercase",
+                            letterSpacing: "0.05em",
+                            borderRadius: "20px",
+                            marginRight: "auto",
+                        }}
+                    />
                     <IconButton
                         size="small"
                         title="Exportar PDF"
