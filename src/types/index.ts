@@ -20,6 +20,7 @@ export interface Institution {
     status: InstitutionStatus;
     observations: string;
     activities: Activity[];
+    datepreview?: Date;
     machine: InstitutionEquipment[];
 }
 

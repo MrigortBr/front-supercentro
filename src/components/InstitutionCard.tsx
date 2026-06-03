@@ -75,19 +75,6 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 </Box>
 
                 <Box sx={{ display: "flex", justifyContent: "flex-end", gap: 0.5 }}>
-                    <Chip
-                        label={"Previsão de entrega: " + new Date(latestEndDate(institution).end_date).toLocaleDateString("pt-BR")}
-                        size={"small"}
-                        sx={{
-                            backgroundColor: "#FF8C00",
-                            color: "#ffffff",
-                            fontWeight: 600,
-                            textTransform: "uppercase",
-                            letterSpacing: "0.05em",
-                            borderRadius: "20px",
-                            marginRight: "auto",
-                        }}
-                    />
                     <IconButton
                         size="small"
                         title="Exportar PDF"
