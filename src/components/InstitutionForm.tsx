@@ -26,7 +26,6 @@ import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEq
 import { chipColors } from "../data/const";
 import { api } from "../service";
 import { PREDEFINED_BASE } from "../data/predefined";
-import { formToJSON } from "axios";
 
 export interface InstitutionFormProps {
     institution: Institution | null;
