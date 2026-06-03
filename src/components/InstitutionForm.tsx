@@ -61,6 +61,10 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [previewPhoto, setPreviewPhoto] = useState<InstitutionPhoto | null>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
+    const fieldLabels: Record<string, string> = {
+        previsao_entrega: "Previsão de Entrega",
+    };
+
     const formatValue = (value: unknown) => {
         if (!value) return "";
 
@@ -922,7 +926,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                 size="small"
                                                                 fullWidth
                                                                 type="date"
-                                                                label="Previsão Entrega"
+                                                                label="Previsão de Entrega"
                                                                 value={
                                                                     editingMachineData.previsao_entrega
                                                                         ? new Date(editingMachineData.previsao_entrega).toISOString().split("T")[0]
@@ -987,7 +991,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                             return (
                                                                 <Chip
                                                                     key={key}
-                                                                    label={`${key}: ${formatValue(value)}`}
+                                                                    label={`${fieldLabels[key] ?? key}: ${formatValue(value)}`}
                                                                     size="small"
                                                                     sx={{
                                                                         bgcolor: chipColors[key] || "#999",
@@ -1157,7 +1161,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                         </Grid>
                                         <Grid item xs={12} sm={9}>
                                             <Typography variant="caption" sx={{ display: "block", color: "#666", mb: 0.5, fontWeight: 500 }}>
-                                                Previsão Entrega
+                                                Previsão de Entrega
                                             </Typography>
                                             <TextField
                                                 size="small"

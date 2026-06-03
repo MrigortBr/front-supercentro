@@ -257,7 +257,7 @@ export default function MonitoringSystem() {
                 y += 2;
                 autoTable(doc, {
                     startY: y,
-                    head: [["Símbolo", "Descrição", "Qtd", "Status", "Previsão Entrega"]],
+                    head: [["Símbolo", "Descrição", "Qtd", "Status", "Previsão de Entrega"]],
                     body: equipRows,
                     margin: { left: margin, right: margin },
                     styles: { fontSize: 7.5, cellPadding: 2.5 },
@@ -750,7 +750,7 @@ export default function MonitoringSystem() {
                 sx={{
                     maxWidth: 1400,
                     mx: "auto",
-                    p: currentView === "gantt" ? 1 : 3,
+                    p: currentView === "gantt" ? { xs: "6px", sm: 2 } : 3,
                     flexGrow: 1,
                     width: "100%",
                 }}
@@ -846,7 +846,7 @@ export default function MonitoringSystem() {
                 )}
 
                 {currentView === "gantt" && (
-                    <Paper sx={{ overflow: "auto", width: "70vw", mx: "auto" }}>
+                    <Paper sx={{ overflow: "hidden", width: "100%" }}>
                         <Box
                             sx={{
                                 display: "flex",

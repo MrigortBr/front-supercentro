@@ -10,7 +10,6 @@ const MONTHS_2026_REST = ["Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov"
 const N_REST = 9;      // Abr–Dez
 const N_COLS = 11;     // 2025(1) + Q1(1) + 9 meses = 11 colunas iguais
 
-const LABEL_WIDTH  = 220;
 const INST_ROW_H   = 48;
 const ACT_ROW_H    = 44;
 const HEADER_YEAR_H = 22;
@@ -27,9 +26,16 @@ const activityBarColors: Record<ActivityStatus, string> = {
 
 /** Calcula as larguras a partir da largura real do container */
 function calcDims(containerW: number) {
-	const available = Math.max(containerW - LABEL_WIDTH, N_COLS * 20);
-	const W_MONTH   = available / N_COLS;
+	const isMobile    = containerW < 480;
+	const isTablet    = containerW < 768;
+	const LABEL_WIDTH = isMobile ? 130 : isTablet ? 160 : 220;
+	const MIN_COL_W   = isMobile ? 70 : isTablet ? 90 : 0;
+	const available   = isMobile || isTablet
+		? Math.max(containerW - LABEL_WIDTH, N_COLS * MIN_COL_W)
+		: containerW - LABEL_WIDTH;
+	const W_MONTH = available / N_COLS;
 	return {
+		LABEL_WIDTH,
 		W_MONTH,
 		W_2025:    W_MONTH,
 		W_Q1_2026: W_MONTH,
@@ -89,12 +95,18 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 		return () => ro.disconnect();
 	}, []);
 
-	const { W_MONTH, W_2025, W_Q1_2026, W_REST, TOTAL_CHART_W } = dims;
+	const { LABEL_WIDTH, W_MONTH, W_2025, W_Q1_2026, W_REST, TOTAL_CHART_W } = dims;
 
 	const px = (dateStr: string) => getGanttPx(dateStr, W_2025, W_Q1_2026, W_MONTH);
 
 	return (
-		<Box ref={rootRef} sx={{ overflowX: "auto", WebkitOverflowScrolling: "touch" }}>
+		<Box
+			ref={rootRef}
+			sx={{
+				overflowX: "auto",
+				WebkitOverflowScrolling: "touch",
+			}}
+		>
 			<Box sx={{ minWidth: LABEL_WIDTH + TOTAL_CHART_W }}>
 
 				{/* ── Header ── */}
@@ -254,14 +266,14 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 										zIndex: 2,
 										display: "flex",
 										alignItems: "center",
-										px: 2,
+										px: { xs: 1, sm: 2 },
 										py: 0.5,
 										minHeight: INST_ROW_H,
 										bgcolor: "#f0f4fb",
 										borderRight: "1px solid #dee2e6",
 									}}
 								>
-									<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: "0.875rem" }}>
+									<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: { xs: "0.72rem", sm: "0.875rem" } }}>
 										{inst.name}
 									</Typography>
 								</Box>
@@ -330,7 +342,7 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 												borderRight: "1px solid #dee2e6",
 											}}
 										>
-											<Typography variant="body2" sx={{ color: "#666", fontSize: "0.8rem" }}>
+											<Typography variant="body2" sx={{ color: "#666", fontSize: { xs: "0.68rem", sm: "0.8rem" } }}>
 												{activity.name}
 											</Typography>
 										</Box>
