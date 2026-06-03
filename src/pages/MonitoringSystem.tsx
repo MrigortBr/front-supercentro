@@ -20,6 +20,7 @@ import {
     Paper,
     CircularProgress,
     Chip,
+    LinearProgress,
 } from "@mui/material";
 
 import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
@@ -49,6 +50,8 @@ export default function MonitoringSystem() {
     const [searchTerm, setSearchTerm] = useState("");
 
     const [filterStatus, setFilterStatus] = useState<InstitutionStatus | "all">("all");
+
+    const [sortBy, setSortBy] = useState("progress-desc");
 
     const [saveSnackbar, setSaveSnackbar] = useState(false);
 
@@ -575,17 +578,56 @@ export default function MonitoringSystem() {
     };
 
     // =========================
+    // OVERALL PROGRESS
+    // =========================
+
+    const calcActivityProgress = (start_date: string, end_date: string): number => {
+        const start = new Date(start_date).getTime();
+        const end = new Date(end_date).getTime();
+        const now = Date.now();
+        if (end <= start) return 100;
+        if (now <= start) return 0;
+        if (now >= end) return 100;
+        return Math.round(((now - start) / (end - start)) * 100);
+    };
+
+    const overallAvgProgress = (() => {
+        const withActivities = institutions.filter(
+            (inst) => inst.activities.filter((a) => a.start_date && a.end_date).length > 0
+        );
+        if (withActivities.length === 0) return 0;
+        const sum = withActivities.reduce((acc, inst) => {
+            const acts = inst.activities.filter((a) => a.start_date && a.end_date);
+            const instPct = Math.round(acts.reduce((s, a) => s + calcActivityProgress(a.start_date, a.end_date), 0) / acts.length);
+            return acc + instPct;
+        }, 0);
+        return Math.round(sum / withActivities.length);
+    })();
+
+    const getInstProgress = (inst: Institution): number => {
+        const acts = inst.activities.filter((a) => a.start_date && a.end_date);
+        if (acts.length === 0) return 0;
+        return Math.round(acts.reduce((s, a) => s + calcActivityProgress(a.start_date, a.end_date), 0) / acts.length);
+    };
+
+    // =========================
     // FILTERS
     // =========================
 
-    const filteredInstitutions = institutions.filter((inst) => {
-        const matchesSearch =
-            inst.name.toLowerCase().includes(searchTerm.toLowerCase()) || inst.state.toLowerCase().includes(searchTerm.toLowerCase());
-
-        const matchesFilter = filterStatus === "all" || inst.status === filterStatus;
-
-        return matchesSearch && matchesFilter;
-    });
+    const filteredInstitutions = institutions
+        .filter((inst) => {
+            const matchesSearch =
+                inst.name.toLowerCase().includes(searchTerm.toLowerCase()) || inst.state.toLowerCase().includes(searchTerm.toLowerCase());
+            const matchesFilter = filterStatus === "all" || inst.status === filterStatus;
+            return matchesSearch && matchesFilter;
+        })
+        .sort((a, b) => {
+            if (sortBy === "progress-desc") return getInstProgress(b) - getInstProgress(a);
+            if (sortBy === "progress-asc") return getInstProgress(a) - getInstProgress(b);
+            if (sortBy === "name-asc") return a.name.localeCompare(b.name, "pt-BR");
+            if (sortBy === "name-desc") return b.name.localeCompare(a.name, "pt-BR");
+            return 0;
+        });
 
     // =========================
     // STATUS COUNT
@@ -757,6 +799,37 @@ export default function MonitoringSystem() {
             >
                 {currentView === "list" && (
                     <>
+                        {/* OVERALL PROGRESS */}
+
+                        <Box
+                            sx={{
+                                mb: 2,
+                                p: 2,
+                                bgcolor: "white",
+                                borderRadius: 2,
+                                border: "1px solid #dee2e6",
+                            }}
+                        >
+                            <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", mb: 1 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 600, color: "#495057" }}>
+                                    Progresso Geral das Instituições
+                                </Typography>
+                                <Typography sx={{ fontWeight: 700, color: "#1351B4", fontSize: "1.1rem" }}>
+                                    {overallAvgProgress}%
+                                </Typography>
+                            </Box>
+                            <LinearProgress
+                                variant="determinate"
+                                value={overallAvgProgress}
+                                sx={{
+                                    height: 8,
+                                    borderRadius: 4,
+                                    bgcolor: "#e9ecef",
+                                    "& .MuiLinearProgress-bar": { bgcolor: "#1351B4", borderRadius: 4 },
+                                }}
+                            />
+                        </Box>
+
                         {/* TOOLBAR */}
 
                         <Box
@@ -805,6 +878,21 @@ export default function MonitoringSystem() {
                                     <MenuItem value="Atrasado">Atrasado</MenuItem>
 
                                     <MenuItem value="Pendente">Pendente</MenuItem>
+                                </Select>
+                            </FormControl>
+
+                            <FormControl
+                                size="small"
+                                sx={{
+                                    minWidth: 190,
+                                    bgcolor: "white",
+                                }}
+                            >
+                                <Select value={sortBy} onChange={(e) => setSortBy(e.target.value)}>
+                                    <MenuItem value="progress-desc">Maior progresso</MenuItem>
+                                    <MenuItem value="progress-asc">Menor progresso</MenuItem>
+                                    <MenuItem value="name-asc">Nome (A–Z)</MenuItem>
+                                    <MenuItem value="name-desc">Nome (Z–A)</MenuItem>
                                 </Select>
                             </FormControl>
 
