@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, CardContent, Box, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button } from "@mui/material";
+import { Card, CardContent, Box, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip } from "@mui/material";
 import { Edit2, Trash2, Printer } from "lucide-react";
 import { Institution } from "../types";
 import StatusChip from "./StatusChip";
@@ -26,12 +26,12 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
     //     });
     // };
 
-    const activityStatusColors: Record<string, { bg: string; color: string }> = {
-        Concluído: { bg: "#168821", color: "#fff" },
-        "Em andamento": { bg: "#1351B4", color: "#fff" },
-        Projetado: { bg: "#FF8C00", color: "#fff" },
-        Planejado: { bg: "#FF8C00", color: "#fff" },
-    };
+    // const activityStatusColors: Record<string, { bg: string; color: string }> = {
+    //     Concluído: { bg: "#168821", color: "#fff" },
+    //     "Em andamento": { bg: "#1351B4", color: "#fff" },
+    //     Projetado: { bg: "#FF8C00", color: "#fff" },
+    //     Planejado: { bg: "#FF8C00", color: "#fff" },
+    // };
 
     return (
         <Card
@@ -174,7 +174,6 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     </Button>
                 </DialogActions>
             </Dialog>
-
         </Card>
     );
 }
