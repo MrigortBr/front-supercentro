@@ -286,6 +286,33 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     </Button>
                 </DialogActions>
             </Dialog>
+
+            {/* PDF preview dialog */}
+            <Dialog
+                open={!!preview}
+                onClose={closePreview}
+                onClick={(e) => e.stopPropagation()}
+                fullScreen
+                PaperProps={{ sx: { display: "flex", flexDirection: "column" } }}
+            >
+                <DialogTitle>Pré-visualização do PDF</DialogTitle>
+                <DialogContent sx={{ p: 0, flex: 1, minHeight: 0 }}>
+                    {preview && (
+                        <Box component="iframe" src={preview.url} title="Pré-visualização do PDF" sx={{ width: "100%", height: "100%", border: 0, display: "block" }} />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closePreview}>Fechar</Button>
+                    <Button
+                        onClick={() => {
+                            preview?.download();
+                        }}
+                        variant="contained"
+                    >
+                        Baixar PDF
+                    </Button>
+                </DialogActions>
+            </Dialog>
         </Card>
     );
 }
