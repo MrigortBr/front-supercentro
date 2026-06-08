@@ -1,3 +1,5 @@
+import BrazilMap from "../components/BrazilMap";
+
 import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
@@ -652,6 +654,61 @@ export default function MonitoringSystem() {
 		return acc;
 	}, {});
 
+	// =========================
+	// CALC STATE
+	// =========================
+
+	const mapaData = filteredInstitutions.map((institution) => {
+    const activitiesWithDates = institution.activities.filter(
+        (a) => a.start_date && a.end_date
+    );
+
+    const avgProgress =
+        activitiesWithDates.length > 0
+            ? Math.round(
+                  activitiesWithDates.reduce((sum, activity) => {
+                      const start = new Date(activity.start_date).getTime();
+                      const end = new Date(activity.end_date).getTime();
+                      const now = Date.now();
+
+                      let progress = 0;
+
+                      if (end <= start) progress = 100;
+                      else if (now <= start) progress = 0;
+                      else if (now >= end) progress = 100;
+                      else {
+                          progress = Math.round(
+                              ((now - start) / (end - start)) * 100
+                          );
+                      }
+
+                      return sum + progress;
+                  }, 0) / activitiesWithDates.length
+              )
+            : 0;
+
+    return {
+        sigla: institution.state,
+        percentual: avgProgress,
+    };
+	});
+
+	const todasUFs = [
+		"AC", "AL", "AP", "AM", "BA", "CE", "DF",
+		"ES", "GO", "MA", "MT", "MS", "MG", "PA",
+		"PB", "PR", "PE", "PI", "RJ", "RN", "RS",
+		"RO", "RR", "SC", "SP", "SE", "TO"
+	];
+
+	const mapaDataCompleto = todasUFs.map((uf) => {
+    const encontrado = mapaData.find((m) => m.sigla === uf);
+
+    return {
+        sigla: uf,
+        percentual: encontrado?.percentual ?? 0,
+    };
+	});
+
 	return (
 		<Box
 			sx={{
@@ -841,6 +898,22 @@ export default function MonitoringSystem() {
 									"& .MuiLinearProgress-bar": { bgcolor: "#1351B4", borderRadius: 4 },
 								}}
 							/>
+						</Box>
+
+						{/* MAPA */}
+
+						<Box
+						sx={{
+							mb: 3,
+							p: 2,
+							bgcolor: "white",
+							borderRadius: 2,
+							border: "1px solid #dee2e6",
+						}}
+						>
+						<BrazilMap
+							data={mapaDataCompleto}
+						/>
 						</Box>
 
 						{/* TOOLBAR */}
