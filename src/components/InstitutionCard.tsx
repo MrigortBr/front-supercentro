@@ -17,6 +17,7 @@ import { Edit2, Trash2, Printer } from "lucide-react";
 import { Activity, Institution } from "../types";
 import StatusChip from "./StatusChip";
 import { previewInstitutionDetailPDF } from "../utils/exportInstitutionPDF";
+import { api } from "../service";
 
 interface InstitutionCardProps {
     institution: Institution;
@@ -26,12 +27,19 @@ interface InstitutionCardProps {
 }
 
 export default function InstitutionCard({ institution, onView, onEdit, onDelete }: InstitutionCardProps) {
-    const [exportDialogOpen, setExportDialogOpen] = useState(false);
     const [preview, setPreview] = useState<{ url: string; download: () => void } | null>(null);
+    const [exporting, setExporting] = useState(false);
 
-    const handleExport = (withGantt: boolean) => {
-        setExportDialogOpen(false);
-        setPreview(previewInstitutionDetailPDF(institution, withGantt));
+    const handleExport = async () => {
+        setExporting(true);
+        try {
+            const res = await api.getPhotos(institution.id);
+            setPreview(previewInstitutionDetailPDF(institution, true, res.data));
+        } catch {
+            setPreview(previewInstitutionDetailPDF(institution, true, []));
+        } finally {
+            setExporting(false);
+        }
     };
 
     const closePreview = () => {
@@ -140,9 +148,10 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     <IconButton
                         size="small"
                         title="Exportar PDF"
+                        disabled={exporting}
                         onClick={(e) => {
                             e.stopPropagation();
-                            setExportDialogOpen(true);
+                            handleExport();
                         }}
                         sx={{
                             border: "1px solid #dee2e6",
@@ -152,7 +161,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                             "&:hover": { bgcolor: "#f0fff4", color: "#168821", borderColor: "#168821" },
                         }}
                     >
-                        <Printer size={16} />
+                        {exporting ? <CircularProgress size={16} /> : <Printer size={16} />}
                     </IconButton>
                     <IconButton
                         size="small"
@@ -251,16 +260,29 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 )}
             </CardContent>
 
-            {/* Export dialog */}
-            <Dialog open={exportDialogOpen} onClose={() => setExportDialogOpen(false)} onClick={(e) => e.stopPropagation()}>
-                <DialogTitle>Exportar PDF</DialogTitle>
-                <DialogContent>
-                    <Typography>Deseja incluir o Gantt da instituição no final do PDF?</Typography>
+            {/* PDF preview dialog */}
+            <Dialog
+                open={!!preview}
+                onClose={closePreview}
+                onClick={(e) => e.stopPropagation()}
+                fullScreen
+                PaperProps={{ sx: { display: "flex", flexDirection: "column" } }}
+            >
+                <DialogTitle>Pré-visualização do PDF</DialogTitle>
+                <DialogContent sx={{ p: 0, flex: 1, minHeight: 0 }}>
+                    {preview && (
+                        <Box component="iframe" src={preview.url} title="Pré-visualização do PDF" sx={{ width: "100%", height: "100%", border: 0, display: "block" }} />
+                    )}
                 </DialogContent>
                 <DialogActions>
-                    <Button onClick={() => handleExport(false)}>Sem Gantt</Button>
-                    <Button onClick={() => handleExport(true)} variant="contained">
-                        Com Gantt
+                    <Button onClick={closePreview}>Fechar</Button>
+                    <Button
+                        onClick={() => {
+                            preview?.download();
+                        }}
+                        variant="contained"
+                    >
+                        Baixar PDF
                     </Button>
                 </DialogActions>
             </Dialog>

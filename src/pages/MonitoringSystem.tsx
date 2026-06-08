@@ -1,13 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
-    AppBar,
-    Toolbar,
     Box,
     Typography,
-    Tabs,
-    Tab,
     Button,
     TextField,
     FormControl,
@@ -19,12 +15,12 @@ import {
     Snackbar,
     Paper,
     CircularProgress,
-    Chip,
     LinearProgress,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
+import { Plus, Search, Save } from "lucide-react";
 
+import Header from "../components/Header";
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
 import GanttChart from "../components/GanttChart";
@@ -55,6 +51,23 @@ export default function MonitoringSystem() {
     const [sortBy, setSortBy] = useState("progress-desc");
 
     const [saveSnackbar, setSaveSnackbar] = useState(false);
+
+    const headerRef = useRef<HTMLDivElement>(null);
+
+    const [headerHeight, setHeaderHeight] = useState(0);
+
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!el) return;
+
+        const ro = new ResizeObserver(([entry]) => {
+            setHeaderHeight(entry.contentRect.height);
+        });
+
+        ro.observe(el);
+
+        return () => ro.disconnect();
+    }, []);
 
     const loadData = async () => {
         try {
@@ -661,172 +674,14 @@ export default function MonitoringSystem() {
 				flexDirection: "column",
 			}}
 		>
-			{/* HEADER */}
-
-			<AppBar
-				position="static"
-				sx={{
-					bgcolor: "#1351B4",
-				}}
-			>
-				<Toolbar>
-					<Box
-						sx={{
-							display: "flex",
-							alignItems: "center",
-							gap: 2,
-							flex: 1,
-						}}
-					>
-						<BarChart3 color="#FFCD07" size={32} />
-
-						<Box>
-							<Typography
-								sx={{
-									color: "white",
-									fontSize: { xs: "0.95rem", sm: "1.25rem", md: "1.5rem" },
-									fontWeight: 700,
-									lineHeight: 1.2,
-								}}
-							>
-								Sistema de Monitoramento
-							</Typography>
-
-							<Typography
-								sx={{
-									color: "rgba(255,255,255,0.8)",
-									fontSize: { xs: "0.7rem", sm: "0.875rem" },
-									display: { xs: "none", sm: "block" },
-								}}
-							>
-								Super Centro Brasil
-							</Typography>
-						</Box>
-					</Box>
-
-					<Box
-						sx={{
-							display: "flex",
-							gap: { xs: 2, sm: 4 },
-						}}
-					>
-						<Box
-							sx={{
-								textAlign: "center",
-							}}
-						>
-							<Typography
-								sx={{
-									color: "#FFCD07",
-									fontWeight: 700,
-									fontSize: { xs: "1.1rem", sm: "1.5rem" },
-								}}
-							>
-								{institutions.length}
-							</Typography>
-
-							<Typography
-								sx={{
-									color: "white",
-									fontSize: { xs: "0.65rem", sm: "0.75rem" },
-								}}
-							>
-								Instituições
-							</Typography>
-						</Box>
-
-						<Box
-							sx={{
-								textAlign: "center",
-							}}
-						>
-							<Typography
-								sx={{
-									color: "#FFCD07",
-									fontWeight: 700,
-									fontSize: { xs: "1.1rem", sm: "1.5rem" },
-								}}
-							>
-								{statusCount["Em andamento"] || 0}
-							</Typography>
-
-							<Typography
-								sx={{
-									color: "white",
-									fontSize: { xs: "0.65rem", sm: "0.75rem" },
-								}}
-							>
-								Em andamento
-							</Typography>
-						</Box>
-					</Box>
-				</Toolbar>
-			</AppBar>
-
-			{/* NAVBAR */}
-
-			<Box
-				sx={{
-					bgcolor: "white",
-					borderBottom: "1px solid #ddd",
-					display: "flex",
-					justifyContent: "space-between",
-					alignItems: "center",
-					px: { xs: 1, sm: 3 },
-				}}
-			>
-				<Tabs
-					value={currentView}
-					onChange={(_, value) => setCurrentView(value)}
-					variant="scrollable"
-					scrollButtons="auto"
-					allowScrollButtonsMobile
-					sx={{ minHeight: { xs: 40, sm: 48 }, flexShrink: 1, minWidth: 0 }}
-				>
-					<Tab
-						value="list"
-						icon={<Settings size={18} />}
-						iconPosition="start"
-						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Instituições</Box>}
-						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
-					/>
-
-					<Tab
-						value="gantt"
-						icon={<Calendar size={18} />}
-						iconPosition="start"
-						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Gantt</Box>}
-						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
-					/>
-
-					{/* <Tab
-						value="map"
-						icon={<MapPin size={18} />}
-						iconPosition="start"
-						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Mapa</Box>}
-						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
-					/> */}
-				</Tabs>
-
-				{currentView !== "map" && (
-					<Button
-						variant="contained"
-						startIcon={<Download size={16} />}
-						onClick={exportToPDF}
-						sx={{
-							bgcolor: "#168821",
-							minWidth: { xs: 40, sm: "auto" },
-							px: { xs: 1, sm: 2 },
-							"& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
-						}}
-					>
-						<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-							{currentView === "gantt" ? "Exportar Gantt" : "Exportar Instituições"}
-						</Box>
-						<Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
-					</Button>
-				)}
-			</Box>
+			<Header
+				ref={headerRef}
+				institutionsCount={institutions.length}
+				inProgressCount={statusCount["Em andamento"] || 0}
+				currentView={currentView}
+				onViewChange={setCurrentView}
+				onExport={exportToPDF}
+			/>
 
 			{/* MAIN */}
 
@@ -977,34 +832,7 @@ export default function MonitoringSystem() {
 
 				{currentView === "gantt" && (
 					<Paper sx={{ overflow: "hidden", width: "100%" }}>
-						<Box
-							sx={{
-								display: "flex",
-								gap: 1,
-								justifyContent: "center",
-								flexWrap: "wrap",
-								p: 2,
-								borderBottom: "1px solid #e0e0e0",
-								bgcolor: "#fafafa",
-							}}
-						>
-							<Chip
-								icon={<Clock3 size={16} color="white" />}
-								label="Em andamento"
-								sx={{ bgcolor: "#1351B4", color: "white", fontWeight: 600 }}
-							/>
-							<Chip
-								icon={<CalendarClock size={16} color="white" />}
-								label="Planejado"
-								sx={{ bgcolor: "#FF8C00", color: "white", fontWeight: 600 }}
-							/>
-							<Chip
-								icon={<CheckCircle2 size={16} color="white" />}
-								label="Concluído"
-								sx={{ bgcolor: "#168821", color: "white", fontWeight: 600 }}
-							/>
-						</Box>
-						<GanttChart institutions={filteredInstitutions} />
+						<GanttChart institutions={filteredInstitutions} topOffset={headerHeight} />
 					</Paper>
 				)}
 

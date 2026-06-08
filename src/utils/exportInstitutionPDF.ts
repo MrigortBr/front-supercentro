@@ -1,7 +1,39 @@
 import jsPDF from "jspdf";
-import { Institution } from "../types";
+import { Institution, InstitutionPhoto } from "../types";
 
 type DocWithPages = { internal: { getNumberOfPages: () => number } };
+
+function photoToDataUrl(photo: InstitutionPhoto): string {
+    const mt = photo.mime_type || "image/jpeg";
+    const data = photo.photo;
+    if (typeof data === "string") {
+        if (data.startsWith("data:")) return data;
+        return `data:${mt};base64,${data}`;
+    }
+    if (data && typeof data === "object" && (data as { type?: string }).type === "Buffer" && Array.isArray((data as { data?: number[] }).data)) {
+        const bytes = new Uint8Array((data as { data: number[] }).data);
+        let binary = "";
+        for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+        return `data:${mt};base64,${btoa(binary)}`;
+    }
+    return "";
+}
+
+function imageFormatFromMime(mime?: string | null): string {
+    if (mime?.includes("png")) return "PNG";
+    if (mime?.includes("webp")) return "WEBP";
+    return "JPEG";
+}
+
+function calculateActivityProgress(startDate: string, endDate: string): number {
+    const start = new Date(startDate).getTime();
+    const end = new Date(endDate).getTime();
+    const now = Date.now();
+    if (end <= start) return 100;
+    if (now <= start) return 0;
+    if (now >= end) return 100;
+    return Math.round(((now - start) / (end - start)) * 100);
+}
 
 function drawGanttPage(doc: jsPDF, institution: Institution) {
     doc.addPage('a4', 'landscape');
@@ -67,7 +99,7 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
     const drawChrome = (): number => {
         // Page header
         doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
-        doc.rect(0, 0, PW, 15, "F");
+        doc.rect(0, 0, PW, 19, "F");
         doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
         doc.setFontSize(11);
         doc.setFont("helvetica", "bold");
@@ -77,7 +109,7 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
         doc.setFont("helvetica", "bold");
         doc.text(institution.name, M, 14);
 
-        let cy = 20;
+        let cy = 24;
 
         // ── Gantt header — year row ──
         doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
@@ -158,6 +190,8 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
     const NAME_LINE_H = 3.1;
     const NAME_MAX_LINES = 2;
     (institution.activities || []).forEach((act, i) => {
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
         let nameLines = doc.splitTextToSize(act.name, LABEL_W - 8) as string[];
         if (nameLines.length > NAME_MAX_LINES) nameLines = nameLines.slice(0, NAME_MAX_LINES);
         const rowH = Math.max(ACT_H, nameLines.length * NAME_LINE_H + 3.4);
@@ -175,8 +209,6 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
         doc.rect(M, y, LABEL_W + CHART_W, rowH);
 
         doc.setTextColor(60, 60, 60);
-        doc.setFontSize(7);
-        doc.setFont("helvetica", "bold");
         const textStartY = y + rowH / 2 + 2 - ((nameLines.length - 1) * NAME_LINE_H) / 2;
         nameLines.forEach((line, li) => doc.text(line, M + 5, textStartY + li * NAME_LINE_H));
 
@@ -188,8 +220,27 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
             if (sx !== null && ex !== null && ex > sx) {
                 const [r,g,b] = actColors[act.status] || BLUE;
                 const BAR_H = ACT_H - 2.5;
+                const barW = ex - sx;
                 doc.setFillColor(r, g, b);
-                doc.roundedRect(chartX + sx, y + (rowH - BAR_H) / 2, ex - sx, BAR_H, 0.8, 0.8, "F");
+                doc.roundedRect(chartX + sx, y + (rowH - BAR_H) / 2, barW, BAR_H, 0.8, 0.8, "F");
+
+                const progress = calculateActivityProgress(String(act.start_date), String(act.end_date));
+                const label = `${progress}%`;
+                const labelY = y + rowH / 2 + 1.2;
+                doc.setFontSize(5.5);
+                doc.setFont("helvetica", "bold");
+                const labelW = doc.getTextWidth(label);
+
+                if (barW >= labelW + 3) {
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(label, chartX + sx + barW / 2, labelY, { align: "center" });
+                } else if (sx + barW + labelW + 2 <= CHART_W) {
+                    doc.setTextColor(60, 60, 60);
+                    doc.text(label, chartX + sx + barW + 1.5, labelY);
+                } else {
+                    doc.setTextColor(60, 60, 60);
+                    doc.text(label, chartX + sx - 1.5, labelY, { align: "right" });
+                }
             }
         }
 
@@ -197,7 +248,7 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
     });
 }
 
-function buildInstitutionDetailPDF(institution: Institution, withGantt = false): { doc: jsPDF; filename: string } {
+function buildInstitutionDetailPDF(institution: Institution, withGantt = false, photos: InstitutionPhoto[] = []): { doc: jsPDF; filename: string } {
     const doc = new jsPDF("p", "mm", "a4");
     const PW  = doc.internal.pageSize.getWidth();   // 210
     const PH  = doc.internal.pageSize.getHeight();  // 297
@@ -330,11 +381,28 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false):
         return H + 2.5;
     };
 
+    // ── Continuation-page header (blue bar + institution name), mirrors the Gantt page header ──
+    const HEADER_BAR_H = 19;
+    const CONTENT_TOP = HEADER_BAR_H + 5;
+    const drawContinuationHeader = () => {
+        doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
+        doc.rect(0, 0, PW, HEADER_BAR_H, "F");
+        doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Sistema de Monitoramento", M, 10);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text(institution.name, M, 14);
+    };
+
     // ── checkPage: add new page if needed, return new y ──
     const checkPage = (currentY: number, needed: number): number => {
         if (currentY + needed > MAX_Y) {
             doc.addPage();
-            return M;
+            drawContinuationHeader();
+            return CONTENT_TOP;
         }
         return currentY;
     };
@@ -546,6 +614,58 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false):
     }
 
     // ════════════════════════════════════════════════════════
+    // GALERIA DE FOTOS
+    // ════════════════════════════════════════════════════════
+    if (photos.length > 0) {
+        y = checkPage(y, 22);
+
+        doc.setFillColor(248, 249, 250);
+        doc.setDrawColor(222, 226, 230);
+        doc.setLineWidth(0.35);
+        doc.roundedRect(M, y, CW, 8, 1.5, 1.5, "FD");
+        doc.setTextColor(73, 80, 87);
+        doc.setFontSize(9);
+        doc.setFont("helvetica", "bold");
+        doc.text("Galeria de Fotos", M + 4, y + 5.6);
+        y += 11;
+
+        const GAP = 4;
+        const THUMB = 40;
+        const cols = Math.max(1, Math.floor((CW + GAP) / (THUMB + GAP)));
+        const ROW_H = THUMB + 7;
+
+        photos.forEach((photo, idx) => {
+            const col = idx % cols;
+            if (col === 0) y = checkPage(y, ROW_H + 2);
+
+            const x = M + col * (THUMB + GAP);
+            const dataUrl = photoToDataUrl(photo);
+            doc.setDrawColor(220, 220, 220);
+            doc.setLineWidth(0.3);
+            if (dataUrl) {
+                try {
+                    doc.addImage(dataUrl, imageFormatFromMime(photo.mime_type), x, y, THUMB, THUMB);
+                } catch {
+                    doc.setFillColor(233, 236, 239);
+                    doc.rect(x, y, THUMB, THUMB, "F");
+                }
+            } else {
+                doc.setFillColor(233, 236, 239);
+                doc.rect(x, y, THUMB, THUMB, "F");
+            }
+            doc.rect(x, y, THUMB, THUMB);
+
+            doc.setTextColor(120, 120, 120);
+            doc.setFontSize(6);
+            doc.setFont("helvetica", "normal");
+            doc.text(fmt(photo.created_at), x + THUMB / 2, y + THUMB + 3.5, { align: "center" });
+
+            if (col === cols - 1 || idx === photos.length - 1) y += ROW_H;
+        });
+        y += 2;
+    }
+
+    // ════════════════════════════════════════════════════════
     // FOOTER  (todas as páginas)
     // ════════════════════════════════════════════════════════
     const pageCount = (doc as unknown as DocWithPages).internal.getNumberOfPages();
@@ -581,13 +701,13 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false):
     return { doc, filename };
 }
 
-export function exportInstitutionDetailPDF(institution: Institution, withGantt = false) {
-    const { doc, filename } = buildInstitutionDetailPDF(institution, withGantt);
+export function exportInstitutionDetailPDF(institution: Institution, withGantt = false, photos: InstitutionPhoto[] = []) {
+    const { doc, filename } = buildInstitutionDetailPDF(institution, withGantt, photos);
     doc.save(filename);
 }
 
-export function previewInstitutionDetailPDF(institution: Institution, withGantt = false): { url: string; download: () => void } {
-    const { doc, filename } = buildInstitutionDetailPDF(institution, withGantt);
+export function previewInstitutionDetailPDF(institution: Institution, withGantt = false, photos: InstitutionPhoto[] = []): { url: string; download: () => void } {
+    const { doc, filename } = buildInstitutionDetailPDF(institution, withGantt, photos);
     const url = doc.output("bloburl") as unknown as string;
     return { url, download: () => doc.save(filename) };
 }

@@ -1762,9 +1762,14 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                             py: 1.5,
                         }}
                     >
-                        <Typography variant="body1" fontWeight={600}>
-                            {previewPhoto.original_name || "Foto"}
-                        </Typography>
+                        <Box>
+                            <Typography variant="body1" fontWeight={600}>
+                                {previewPhoto.original_name || "Foto"}
+                            </Typography>
+                            <Typography variant="caption" sx={{ color: "#868e96" }}>
+                                Adicionada em {new Date(previewPhoto.created_at).toLocaleDateString("pt-BR")}
+                            </Typography>
+                        </Box>
 
                         <IconButton onClick={() => setPreviewPhoto(null)}>
                             <X size={18} />
