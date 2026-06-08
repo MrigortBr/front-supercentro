@@ -78,14 +78,6 @@ export default function MonitoringSystem() {
     // CREATE / UPDATE
     // =========================
 
-    const handleSave = async (institutionData: Omit<Institution, "id">) => {
-        try {
-            if (editingInstitution) {
-                await api.updateInstituicion(editingInstitution.id, institutionData);
-            } else {
-                await api.createInstituicion(institutionData);
-            }
-
 	const handleSave = async (institutionData: Omit<Institution, "id">) => {
 		try {
 			if (editingInstitution) {
@@ -807,13 +799,13 @@ export default function MonitoringSystem() {
 						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
 					/>
 
-					<Tab
+					{/* <Tab
 						value="map"
 						icon={<MapPin size={18} />}
 						iconPosition="start"
 						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Mapa</Box>}
 						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
-					/>
+					/> */}
 				</Tabs>
 
 				{currentView !== "map" && (
