@@ -4,6 +4,7 @@ import { Institution, Activity, ActivityStatus } from "../types";
 
 interface GanttChartProps {
 	institutions: Institution[];
+	topOffset?: number;
 }
 
 const MONTHS_2026_REST = ["Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
@@ -90,7 +91,7 @@ function getGanttPx(
 	}
 }
 
-export default function GanttChart({ institutions }: GanttChartProps) {
+export default function GanttChart({ institutions, topOffset = 0 }: GanttChartProps) {
 	const rootRef = useRef<HTMLDivElement>(null);
 
 	const [dims, setDims] = useState(() => calcDims(window.innerWidth * 0.7));
@@ -113,8 +114,12 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 		<Box
 			ref={rootRef}
 			sx={{
-				overflowX: "auto",
+				overflow: "auto",
 				WebkitOverflowScrolling: "touch",
+				height: `calc(100vh - ${topOffset + 32}px)`,
+				scrollbarWidth: "none",
+				msOverflowStyle: "none",
+				"&::-webkit-scrollbar": { display: "none" },
 			}}
 		>
 			<Box sx={{ minWidth: LABEL_WIDTH + TOTAL_CHART_W }}>
@@ -267,68 +272,107 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 							: 0;
 
 					return (
-						<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
+						<Box key={idx} sx={{ position: "relative", borderBottom: "2px solid #dee2e6" }}>
 
-							{/* Linha da instituição */}
-							<Box sx={{ display: "flex", borderBottom: "1px solid #e9ecef" }}>
-								{/* Label */}
+							{/* Linha-resumo da instituição (nome + barra) – acompanha o scroll vertical em conjunto até a última atividade do grupo */}
+							<Box
+								sx={{
+									position: "absolute",
+									top: 0,
+									bottom: 0,
+									left: 0,
+									right: 0,
+									pointerEvents: "none",
+									zIndex: 3,
+								}}
+							>
+								<Box
+									sx={{
+										position: "sticky",
+										top: HEADER_TOTAL_H,
+										display: "flex",
+										borderBottom: "1px solid #e9ecef",
+										pointerEvents: "auto",
+									}}
+								>
+									{/* Nome – também fixo horizontalmente à esquerda */}
+									<Box
+										sx={{
+											width: LABEL_WIDTH,
+											flexShrink: 0,
+											position: "sticky",
+											left: 0,
+											zIndex: 2,
+											display: "flex",
+											alignItems: "center",
+											px: { xs: 1, sm: 2 },
+											py: 0.5,
+											minHeight: INST_ROW_H,
+											bgcolor: "#f0f4fb",
+											borderRight: "1px solid #dee2e6",
+										}}
+									>
+										<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: { xs: "0.72rem", sm: "0.875rem" }, wordBreak: "break-word", overflowWrap: "break-word" }}>
+											{inst.name}
+										</Typography>
+									</Box>
+
+									{/* Barra da instituição */}
+									<Box
+										sx={{
+											width: TOTAL_CHART_W,
+											flexShrink: 0,
+											position: "relative",
+											minHeight: INST_ROW_H,
+											bgcolor: "#f0f4fb",
+										}}
+									>
+										{minStart !== null && maxEnd !== null && (
+											<Box
+												sx={{
+													position: "absolute",
+													height: 24,
+													top: "50%",
+													transform: "translateY(-50%)",
+													borderRadius: 1,
+													display: "flex",
+													alignItems: "center",
+													overflow: "hidden",
+													px: 1,
+													minWidth: 4,
+													bgcolor: "#1351B4",
+													boxShadow: "0 2px 4px rgba(19,81,180,0.3)",
+													left: minStart,
+													width: Math.max(4, maxEnd - minStart),
+												}}
+											>
+												<Typography sx={{ color: "white", fontSize: "0.65rem", fontWeight: 600, whiteSpace: "nowrap" }}>
+													{inst.status} – {avgProgress}%
+												</Typography>
+											</Box>
+										)}
+									</Box>
+								</Box>
+							</Box>
+
+							{/* Linha fantasma (invisível) – reserva o espaço vertical exato ocupado pela linha-resumo fixa, mesmo com nomes longos que quebram em várias linhas */}
+							<Box sx={{ display: "flex", borderBottom: "1px solid #e9ecef", visibility: "hidden" }} aria-hidden>
 								<Box
 									sx={{
 										width: LABEL_WIDTH,
 										flexShrink: 0,
-										position: "sticky",
-										left: 0,
-										zIndex: 2,
 										display: "flex",
 										alignItems: "center",
 										px: { xs: 1, sm: 2 },
 										py: 0.5,
 										minHeight: INST_ROW_H,
-										bgcolor: "#f0f4fb",
-										borderRight: "1px solid #dee2e6",
 									}}
 								>
-									<Typography variant="body2" fontWeight={700} color="primary" sx={{ fontSize: { xs: "0.72rem", sm: "0.875rem" }, wordBreak: "break-word", overflowWrap: "break-word" }}>
+									<Typography variant="body2" fontWeight={700} sx={{ fontSize: { xs: "0.72rem", sm: "0.875rem" }, wordBreak: "break-word", overflowWrap: "break-word" }}>
 										{inst.name}
 									</Typography>
 								</Box>
-
-								{/* Barra da instituição */}
-								<Box
-									sx={{
-										width: TOTAL_CHART_W,
-										flexShrink: 0,
-										position: "relative",
-										minHeight: INST_ROW_H,
-										bgcolor: "#f0f4fb",
-										"&:hover": { bgcolor: "#e8eef8" },
-									}}
-								>
-									{minStart !== null && maxEnd !== null && (
-										<Box
-											sx={{
-												position: "absolute",
-												height: 24,
-												top: "50%",
-												transform: "translateY(-50%)",
-												borderRadius: 1,
-												display: "flex",
-												alignItems: "center",
-												overflow: "hidden",
-												px: 1,
-												minWidth: 4,
-												bgcolor: "#1351B4",
-												boxShadow: "0 2px 4px rgba(19,81,180,0.3)",
-												left: minStart,
-												width: Math.max(4, maxEnd - minStart),
-											}}
-										>
-											<Typography sx={{ color: "white", fontSize: "0.65rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-												{inst.status} – {avgProgress}%
-											</Typography>
-										</Box>
-									)}
-								</Box>
+								<Box sx={{ width: TOTAL_CHART_W, flexShrink: 0, minHeight: INST_ROW_H }} />
 							</Box>
 
 							{/* Linhas das atividades */}

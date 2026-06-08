@@ -1,3 +1,4 @@
+import { forwardRef } from "react";
 import { AppBar, Toolbar, Box, Typography, Tabs, Tab, Button, Chip } from "@mui/material";
 import { BarChart3, Download, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
 
@@ -11,15 +12,15 @@ interface HeaderProps {
     onExport: () => void;
 }
 
-export default function Header({
+const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
     institutionsCount,
     inProgressCount,
     currentView,
     onViewChange,
     onExport,
-}: HeaderProps) {
+}, ref) {
     return (
-        <Box sx={{ position: "sticky", top: 0, zIndex: (theme) => theme.zIndex.appBar }}>
+        <Box ref={ref} sx={{ position: "sticky", top: 0, zIndex: (theme) => theme.zIndex.appBar }}>
             {/* HEADER */}
 
             <AppBar
@@ -220,4 +221,6 @@ export default function Header({
             )}
         </Box>
     );
-}
+});
+
+export default Header;

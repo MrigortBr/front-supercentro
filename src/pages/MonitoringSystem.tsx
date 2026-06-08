@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
@@ -51,6 +51,23 @@ export default function MonitoringSystem() {
     const [sortBy, setSortBy] = useState("progress-desc");
 
     const [saveSnackbar, setSaveSnackbar] = useState(false);
+
+    const headerRef = useRef<HTMLDivElement>(null);
+
+    const [headerHeight, setHeaderHeight] = useState(0);
+
+    useEffect(() => {
+        const el = headerRef.current;
+        if (!el) return;
+
+        const ro = new ResizeObserver(([entry]) => {
+            setHeaderHeight(entry.contentRect.height);
+        });
+
+        ro.observe(el);
+
+        return () => ro.disconnect();
+    }, []);
 
     const loadData = async () => {
         try {
@@ -658,6 +675,7 @@ export default function MonitoringSystem() {
 			}}
 		>
 			<Header
+				ref={headerRef}
 				institutionsCount={institutions.length}
 				inProgressCount={statusCount["Em andamento"] || 0}
 				currentView={currentView}
@@ -814,7 +832,7 @@ export default function MonitoringSystem() {
 
 				{currentView === "gantt" && (
 					<Paper sx={{ overflow: "hidden", width: "100%" }}>
-						<GanttChart institutions={filteredInstitutions} />
+						<GanttChart institutions={filteredInstitutions} topOffset={headerHeight} />
 					</Paper>
 				)}
 
