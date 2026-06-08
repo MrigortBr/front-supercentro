@@ -22,7 +22,7 @@ import {
     LinearProgress,
     Collapse,
 } from "@mui/material";
-import { Plus, Pencil, Trash2, Calendar, X, Upload, MessageSquare } from "lucide-react";
+import { Plus, Pencil, Trash2, Calendar, X, Upload, MessageSquare, ChevronRight, ChevronLeft } from "lucide-react";
 import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto, ActivityObservation } from "../types";
 import { chipColors } from "../data/const";
 import { api } from "../service";
@@ -75,6 +75,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [loadingPhotos, setLoadingPhotos] = useState(false);
     const [loadingUpload, setLoadingUpload] = useState(false);
     const [previewPhoto, setPreviewPhoto] = useState<InstitutionPhoto | null>(null);
+    const [previewIndex, setPreviewIndex] = useState<number>(0);
     const fileInputRef = useRef<HTMLInputElement>(null);
 
     const fieldLabels: Record<string, string> = {
@@ -283,6 +284,20 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const startEditMachine = (idx: number) => {
         setEditingMachineDataIdx(idx);
         setEditingMachineData({ ...formData.machine[idx] });
+    };
+
+    const goNextPhoto = () => {
+        const nextIndex = (previewIndex + 1) % photos.length;
+
+        setPreviewIndex(nextIndex);
+        setPreviewPhoto(photos[nextIndex]);
+    };
+
+    const goPrevPhoto = () => {
+        const prevIndex = (previewIndex - 1 + photos.length) % photos.length;
+
+        setPreviewIndex(prevIndex);
+        setPreviewPhoto(photos[prevIndex]);
     };
 
     const saveEditMachine = () => {
@@ -1696,24 +1711,52 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
             {previewPhoto && (
                 <Dialog open onClose={() => setPreviewPhoto(null)} maxWidth="lg">
-                    <DialogTitle sx={{ display: "flex", justifyContent: "space-between", alignItems: "center", py: 1.5 }}>
+                    <DialogTitle
+                        sx={{
+                            display: "flex",
+                            justifyContent: "space-between",
+                            alignItems: "center",
+                            py: 1.5,
+                        }}
+                    >
                         <Typography variant="body1" fontWeight={600}>
                             {previewPhoto.original_name || "Foto"}
                         </Typography>
-                        <IconButton onClick={() => setPreviewPhoto(null)} size="small">
+
+                        <IconButton onClick={() => setPreviewPhoto(null)}>
                             <X size={18} />
                         </IconButton>
                     </DialogTitle>
-                    <DialogContent sx={{ p: 1 }}>
+
+                    <DialogContent
+                        sx={{
+                            p: 1,
+                            display: "flex",
+                            alignItems: "center",
+                            gap: 2,
+                        }}
+                    >
+                        <IconButton onClick={goPrevPhoto}>
+                            <ChevronLeft size={28} />
+                        </IconButton>
+
                         <img
                             src={photoToDataUrl(previewPhoto)}
                             alt={previewPhoto.original_name || "foto"}
-                            style={{ maxWidth: "100%", maxHeight: "75vh", objectFit: "contain", display: "block" }}
+                            style={{
+                                maxWidth: "80vw",
+                                maxHeight: "75vh",
+                                objectFit: "contain",
+                                display: "block",
+                            }}
                         />
+
+                        <IconButton onClick={goNextPhoto}>
+                            <ChevronRight size={28} />
+                        </IconButton>
                     </DialogContent>
                 </Dialog>
             )}
-
             <Dialog open={deletingPhotoId !== null} onClose={() => setDeletingPhotoId(null)} maxWidth="xs" fullWidth>
                 <DialogTitle>Remover foto</DialogTitle>
                 <DialogContent>
