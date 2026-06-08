@@ -1,5 +1,18 @@
 import { useState } from "react";
-import { Card, CardContent, Box, Typography, IconButton, Dialog, DialogTitle, DialogContent, DialogActions, Button, Chip, CircularProgress } from "@mui/material";
+import {
+    Card,
+    CardContent,
+    Box,
+    Typography,
+    IconButton,
+    Dialog,
+    DialogTitle,
+    DialogContent,
+    DialogActions,
+    Button,
+    Chip,
+    CircularProgress,
+} from "@mui/material";
 import { Edit2, Trash2, Printer } from "lucide-react";
 import { Activity, Institution } from "../types";
 import StatusChip from "./StatusChip";
@@ -33,19 +46,24 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
     // };
 
     const calculateProgress = (activity: Activity): number => {
+        if (!activity.start_date || !activity.end_date) {
+            return 0;
+        }
+
         const start = new Date(activity.start_date).getTime();
         const end = new Date(activity.end_date).getTime();
         const now = Date.now();
+
         if (end <= start) return 100;
         if (now <= start) return 0;
         if (now >= end) return 100;
+
         return Math.round(((now - start) / (end - start)) * 100);
     };
-
-    const activitiesWithDates = institution.activities.filter((a) => a.start_date && a.end_date);
+    // const activitiesWithDates = institution.activities.filter((a) => a.start_date && a.end_date);
     const avgProgress =
-        activitiesWithDates.length > 0
-            ? Math.round(activitiesWithDates.reduce((sum, a) => sum + calculateProgress(a), 0) / activitiesWithDates.length)
+        institution.activities.length > 0
+            ? Math.round(institution.activities.reduce((sum, a) => sum + calculateProgress(a), 0) / institution.activities.length)
             : 0;
 
     const institutionStatusColors: Record<string, string> = {
@@ -211,13 +229,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                 {institution.activities.length > 0 && (
                     <Box sx={{ display: "flex", flexDirection: "column", alignItems: "center", flexShrink: 0 }}>
                         <Box sx={{ position: "relative", display: "inline-flex" }}>
-                            <CircularProgress
-                                variant="determinate"
-                                value={avgProgress}
-                                size={58}
-                                thickness={4}
-                                sx={{ color: progressColor }}
-                            />
+                            <CircularProgress variant="determinate" value={avgProgress} size={58} thickness={4} sx={{ color: progressColor }} />
                             <Box
                                 sx={{
                                     position: "absolute",

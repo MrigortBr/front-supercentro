@@ -2,28 +2,28 @@ import { useState, useEffect } from "react";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import {
-	AppBar,
-	Toolbar,
-	Box,
-	Typography,
-	Tabs,
-	Tab,
-	Button,
-	TextField,
-	FormControl,
-	Select,
-	MenuItem,
-	InputAdornment,
-	Grid,
-	Alert,
-	Snackbar,
-	Paper,
-	CircularProgress,
-	Chip,
-	LinearProgress,
+    AppBar,
+    Toolbar,
+    Box,
+    Typography,
+    Tabs,
+    Tab,
+    Button,
+    TextField,
+    FormControl,
+    Select,
+    MenuItem,
+    InputAdornment,
+    Grid,
+    Alert,
+    Snackbar,
+    Paper,
+    CircularProgress,
+    Chip,
+    LinearProgress,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2, MapPin } from "lucide-react";
+import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
 
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
@@ -36,48 +36,55 @@ import { Institution, ViewType, InstitutionStatus } from "../types";
 import { api } from "../service";
 
 export default function MonitoringSystem() {
-	const [institutions, setInstitutions] = useState<Institution[]>([]);
+    const [institutions, setInstitutions] = useState<Institution[]>([]);
 
-	const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState(false);
 
-	const [currentView, setCurrentView] = useState<ViewType>("list");
+    const [currentView, setCurrentView] = useState<ViewType>("list");
 
-	const [showForm, setShowForm] = useState(false);
+    const [showForm, setShowForm] = useState(false);
 
-	const [editingInstitution, setEditingInstitution] = useState<Institution | null>(null);
+    const [editingInstitution, setEditingInstitution] = useState<Institution | null>(null);
 
-	const [viewingInstitution, setViewingInstitution] = useState<Institution | null>(null);
+    const [viewingInstitution, setViewingInstitution] = useState<Institution | null>(null);
 
-	const [searchTerm, setSearchTerm] = useState("");
+    const [searchTerm, setSearchTerm] = useState("");
 
-	const [filterStatus, setFilterStatus] = useState<InstitutionStatus | "all">("all");
+    const [filterStatus, setFilterStatus] = useState<InstitutionStatus | "all">("all");
 
-	const [sortBy, setSortBy] = useState("progress-desc");
+    const [sortBy, setSortBy] = useState("progress-desc");
 
-	const [saveSnackbar, setSaveSnackbar] = useState(false);
+    const [saveSnackbar, setSaveSnackbar] = useState(false);
 
+    const loadData = async () => {
+        try {
+            setLoading(true);
 
-	const loadData = async () => {
-		try {
-			setLoading(true);
+            const response = await api.getInstituicions();
 
-			const response = await api.getInstituicions();
+            setInstitutions(response.data.data);
+        } catch (error) {
+            console.error(error);
+        } finally {
+            setLoading(false);
+        }
+    };
 
-			setInstitutions(response.data.data);
-		} catch (error) {
-			console.error(error);
-		} finally {
-			setLoading(false);
-		}
-	};
+    useEffect(() => {
+        loadData();
+    }, []);
 
-	useEffect(() => {
-		loadData();
-	}, []);
+    // =========================
+    // CREATE / UPDATE
+    // =========================
 
-	// =========================
-	// CREATE / UPDATE
-	// =========================
+    const handleSave = async (institutionData: Omit<Institution, "id">) => {
+        try {
+            if (editingInstitution) {
+                await api.updateInstituicion(editingInstitution.id, institutionData);
+            } else {
+                await api.createInstituicion(institutionData);
+            }
 
 	const handleSave = async (institutionData: Omit<Institution, "id">) => {
 		try {
