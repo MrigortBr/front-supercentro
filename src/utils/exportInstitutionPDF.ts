@@ -262,6 +262,15 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         return cy - topY + ROW_H;
     };
 
+    // ── measureTallField: wraps the value and computes the box height it needs ──
+    const TALL_LINE_H = 4;
+    const measureTallField = (value: string, w: number): { lines: string[]; height: number } => {
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(value || "Nenhuma", w - 6) as string[];
+        return { lines, height: Math.max(18, lines.length * TALL_LINE_H + 8) };
+    };
+
     // ── drawField: outlined text-field style box ──
     const drawField = (
         label: string,
@@ -271,7 +280,12 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         w: number,
         tall = false,
     ): number => {
-        const H = tall ? 18 : 11;
+        let H = 11;
+        let tallData: { lines: string[]; height: number } | null = null;
+        if (tall) {
+            tallData = measureTallField(value, w);
+            H = tallData.height;
+        }
         doc.setFillColor(255, 255, 255);
         doc.setDrawColor(180, 180, 180);
         doc.setLineWidth(0.35);
@@ -284,13 +298,11 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         doc.text(label, x + 3, y + 4);
 
         // value
-        if (tall) {
+        if (tall && tallData) {
             doc.setFontSize(8.5);
-            doc.setFont(value ? "helvetica" : "helvetica", "normal");
+            doc.setFont("helvetica", value ? "normal" : "italic");
             doc.setTextColor(value ? 40 : 160, value ? 40 : 160, value ? 40 : 160);
-            if (!value) doc.setFont("helvetica", "italic");
-            const lines = doc.splitTextToSize(value || "Nenhuma", w - 6) as string[];
-            doc.text(lines, x + 3, y + 9);
+            doc.text(tallData.lines, x + 3, y + 9);
         } else {
             doc.setFontSize(9);
             doc.setFont("helvetica", "normal");
@@ -371,7 +383,9 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
     y += drawField("Responsável *", institution.responsible || "—", M, y, CW);
 
     // Observações
-    y += drawField("Observações", institution.observations || "", M, y, CW, true);
+    const obsValue = institution.observations || "";
+    y = checkPage(y, measureTallField(obsValue, CW).height + 2.5);
+    y += drawField("Observações", obsValue, M, y, CW, true);
     y += 2;
 
     // ════════════════════════════════════════════════════════

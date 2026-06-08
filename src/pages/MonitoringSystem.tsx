@@ -773,15 +773,40 @@ export default function MonitoringSystem() {
 					display: "flex",
 					justifyContent: "space-between",
 					alignItems: "center",
-					px: 3,
+					px: { xs: 1, sm: 3 },
 				}}
 			>
-				<Tabs value={currentView} onChange={(_, value) => setCurrentView(value)}>
-					<Tab value="list" icon={<Settings size={18} />} iconPosition="start" label="Instituições" />
+				<Tabs
+					value={currentView}
+					onChange={(_, value) => setCurrentView(value)}
+					variant="scrollable"
+					scrollButtons="auto"
+					allowScrollButtonsMobile
+					sx={{ minHeight: { xs: 40, sm: 48 }, flexShrink: 1, minWidth: 0 }}
+				>
+					<Tab
+						value="list"
+						icon={<Settings size={18} />}
+						iconPosition="start"
+						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Instituições</Box>}
+						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
+					/>
 
-					<Tab value="gantt" icon={<Calendar size={18} />} iconPosition="start" label="Gantt" />
+					<Tab
+						value="gantt"
+						icon={<Calendar size={18} />}
+						iconPosition="start"
+						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Gantt</Box>}
+						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
+					/>
 
-					<Tab value="map" icon={<MapPin size={18} />} iconPosition="start" label="Mapa" />
+					<Tab
+						value="map"
+						icon={<MapPin size={18} />}
+						iconPosition="start"
+						label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Mapa</Box>}
+						sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
+					/>
 				</Tabs>
 
 				{currentView !== "map" && (
