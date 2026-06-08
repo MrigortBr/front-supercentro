@@ -23,11 +23,12 @@ import {
 	LinearProgress,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
+import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2, MapPin } from "lucide-react";
 
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
 import GanttChart from "../components/GanttChart";
+import MapView from "../components/MapView";
 import Footer from "../components/Footer";
 
 import { Institution, ViewType, InstitutionStatus } from "../types";
@@ -779,24 +780,28 @@ export default function MonitoringSystem() {
 					<Tab value="list" icon={<Settings size={18} />} iconPosition="start" label="Instituições" />
 
 					<Tab value="gantt" icon={<Calendar size={18} />} iconPosition="start" label="Gantt" />
+
+					<Tab value="map" icon={<MapPin size={18} />} iconPosition="start" label="Mapa" />
 				</Tabs>
 
-				<Button
-					variant="contained"
-					startIcon={<Download size={16} />}
-					onClick={exportToPDF}
-					sx={{
-						bgcolor: "#168821",
-						minWidth: { xs: 40, sm: "auto" },
-						px: { xs: 1, sm: 2 },
-						"& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
-					}}
-				>
-					<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-						{currentView === "gantt" ? "Exportar Gantt" : "Exportar Instituições"}
-					</Box>
-					<Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
-				</Button>
+				{currentView !== "map" && (
+					<Button
+						variant="contained"
+						startIcon={<Download size={16} />}
+						onClick={exportToPDF}
+						sx={{
+							bgcolor: "#168821",
+							minWidth: { xs: 40, sm: "auto" },
+							px: { xs: 1, sm: 2 },
+							"& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
+						}}
+					>
+						<Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+							{currentView === "gantt" ? "Exportar Gantt" : "Exportar Instituições"}
+						</Box>
+						<Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
+					</Button>
+				)}
 			</Box>
 
 			{/* MAIN */}
@@ -976,6 +981,12 @@ export default function MonitoringSystem() {
 							/>
 						</Box>
 						<GanttChart institutions={filteredInstitutions} />
+					</Paper>
+				)}
+
+				{currentView === "map" && (
+					<Paper sx={{ overflow: "hidden", width: "100%" }}>
+						<MapView />
 					</Paper>
 				)}
 			</Box>
