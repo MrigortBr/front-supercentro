@@ -334,7 +334,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
 	return (
 		<>
-			<Dialog open fullWidth maxWidth="md" PaperProps={{ sx: { maxHeight: "90vh" } }}>
+			<Dialog open onClose={onCancel} fullWidth maxWidth="md" PaperProps={{ sx: { maxHeight: "90vh" } }}>
 				<DialogTitle
 					sx={{
 						display: "flex",
@@ -353,7 +353,10 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 					</IconButton>
 				</DialogTitle>
 
-				<form onSubmit={handleSubmit}>
+				<form
+					onSubmit={handleSubmit}
+					style={{ display: "flex", flexDirection: "column", flex: "1 1 auto", overflow: "hidden", minHeight: 0 }}
+				>
 					<DialogContent sx={{ p: 3 }}>
 						<Box sx={{ mb: 2.5 }}>
 							<TextField

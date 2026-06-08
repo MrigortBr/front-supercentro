@@ -192,9 +192,22 @@ export default function MonitoringSystem() {
 		y += 6;
 
 		filteredInstitutions.forEach((inst) => {
-			const activitiesRows = (inst.activities || []).map((a) => [
-				a.name, a.responsible || "—", formatDate(a.start_date), formatDate(a.end_date), a.status,
-			]);
+			const activitiesRows: (string | { content: string; colSpan: number; styles: Record<string, unknown> })[][] = [];
+			(inst.activities || []).forEach((a) => {
+				activitiesRows.push([a.name, a.responsible || "—", formatDate(a.start_date), formatDate(a.end_date), a.status]);
+				if (a.observation && a.observation.length > 0) {
+					const obsText = a.observation
+						.map((o) => `${formatDate(o.date_observation)}: ${o.text_observation}`)
+						.join("  |  ");
+					activitiesRows.push([
+						{
+							content: `Obs.: ${obsText}`,
+							colSpan: 5,
+							styles: { fontStyle: "italic", textColor: [90, 90, 90], fontSize: 7, fillColor: [248, 249, 250] },
+						},
+					]);
+				}
+			});
 			const equipRows = (inst.machine || []).map((m) => [
 				m.simb, m.descricao, String(m.quantidade), m.status,
 				m.previsao_entrega ? formatDate(String(m.previsao_entrega)) : "—",

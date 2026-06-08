@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect } from "react";
 import { Box, Typography } from "@mui/material";
-import { Institution, ActivityStatus } from "../types";
+import { Institution, Activity, ActivityStatus } from "../types";
 
 interface GanttChartProps {
 	institutions: Institution[];
@@ -23,6 +23,16 @@ const activityBarColors: Record<ActivityStatus, string> = {
 	Projetado: "#FF8C00",
 	Planejado: "#FF8C00",
 };
+
+function calculateProgress(activity: Activity): number {
+	const start = new Date(activity.start_date).getTime();
+	const end = new Date(activity.end_date).getTime();
+	const now = Date.now();
+	if (end <= start) return 100;
+	if (now <= start) return 0;
+	if (now >= end) return 100;
+	return Math.round(((now - start) / (end - start)) * 100);
+}
 
 /** Calcula as larguras a partir da largura real do container */
 function calcDims(containerW: number) {
@@ -251,6 +261,11 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 					const minStart = positions.length > 0 ? Math.min(...positions.map((p) => p.start)) : null;
 					const maxEnd   = positions.length > 0 ? Math.max(...positions.map((p) => p.end))   : null;
 
+					const avgProgress =
+						validActivities.length > 0
+							? Math.round(validActivities.reduce((sum, a) => sum + calculateProgress(a), 0) / validActivities.length)
+							: 0;
+
 					return (
 						<Box key={idx} sx={{ borderBottom: "2px solid #dee2e6" }}>
 
@@ -309,7 +324,7 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 											}}
 										>
 											<Typography sx={{ color: "white", fontSize: "0.65rem", fontWeight: 600, whiteSpace: "nowrap" }}>
-												{inst.status}
+												{inst.status} – {avgProgress}%
 											</Typography>
 										</Box>
 									)}
@@ -321,6 +336,7 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 								const start    = px(activity.start_date);
 								const end      = px(activity.end_date);
 								const barColor = activityBarColors[activity.status] || "#1351B4";
+								const progress = activity.start_date && activity.end_date ? calculateProgress(activity) : null;
 
 								return (
 									<Box key={aidx} sx={{ display: "flex", borderBottom: "1px solid #e9ecef" }}>
@@ -357,23 +373,53 @@ export default function GanttChart({ institutions }: GanttChartProps) {
 												"&:hover": { bgcolor: "#f8f9fa" },
 											}}
 										>
-											{start !== null && end !== null && (
-												<Box
-													title={`${activity.name} – ${activity.status}`}
-													sx={{
-														position: "absolute",
-														height: 18,
-														top: "50%",
-														transform: "translateY(-50%)",
-														borderRadius: 1,
-														minWidth: 4,
-														bgcolor: barColor,
-														border: `1px solid ${barColor}cc`,
-														left: start,
-														width: Math.max(4, end - start),
-													}}
-												/>
-											)}
+											{start !== null && end !== null && (() => {
+												const barWidth = Math.max(4, end - start);
+												const LABEL_GAP = 6;
+												const LABEL_W_EST = 30; // estimativa da largura do rótulo "100%"
+												const fitsOnRight = start + barWidth + LABEL_GAP + LABEL_W_EST <= TOTAL_CHART_W;
+												const fitsInside  = barWidth >= LABEL_W_EST + 8;
+
+												let labelSx: Record<string, unknown>;
+												if (fitsOnRight) {
+													labelSx = { left: start + barWidth + LABEL_GAP, top: "50%", transform: "translateY(-50%)", color: "#666" };
+												} else if (fitsInside) {
+													labelSx = { left: start, width: barWidth, top: "50%", transform: "translateY(-50%)", textAlign: "right", pr: 0.75, color: "white" };
+												} else {
+													labelSx = { left: start + barWidth / 2, top: "50%", transform: "translate(-50%, -50%)", color: "white" };
+												}
+
+												return (
+													<>
+														<Box
+															title={`${activity.name} – ${activity.status} – ${progress}%`}
+															sx={{
+																position: "absolute",
+																height: 18,
+																top: "50%",
+																transform: "translateY(-50%)",
+																borderRadius: 1,
+																minWidth: 4,
+																bgcolor: barColor,
+																border: `1px solid ${barColor}cc`,
+																left: start,
+																width: barWidth,
+															}}
+														/>
+														<Typography
+															sx={{
+																position: "absolute",
+																fontSize: "0.65rem",
+																fontWeight: 600,
+																whiteSpace: "nowrap",
+																...labelSx,
+															}}
+														>
+															{progress}%
+														</Typography>
+													</>
+												);
+											})()}
 										</Box>
 									</Box>
 								);
