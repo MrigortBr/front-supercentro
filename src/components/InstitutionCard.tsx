@@ -16,7 +16,7 @@ import {
 import { Edit2, Trash2, Printer } from "lucide-react";
 import { Activity, Institution } from "../types";
 import StatusChip from "./StatusChip";
-import { exportInstitutionDetailPDF } from "../utils/exportInstitutionPDF";
+import { previewInstitutionDetailPDF } from "../utils/exportInstitutionPDF";
 
 interface InstitutionCardProps {
     institution: Institution;
@@ -27,10 +27,16 @@ interface InstitutionCardProps {
 
 export default function InstitutionCard({ institution, onView, onEdit, onDelete }: InstitutionCardProps) {
     const [exportDialogOpen, setExportDialogOpen] = useState(false);
+    const [preview, setPreview] = useState<{ url: string; download: () => void } | null>(null);
 
     const handleExport = (withGantt: boolean) => {
         setExportDialogOpen(false);
-        exportInstitutionDetailPDF(institution, withGantt);
+        setPreview(previewInstitutionDetailPDF(institution, withGantt));
+    };
+
+    const closePreview = () => {
+        if (preview) URL.revokeObjectURL(preview.url);
+        setPreview(null);
     };
 
     // const latestEndDate = (i: Institution) => {
@@ -255,6 +261,33 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                     <Button onClick={() => handleExport(false)}>Sem Gantt</Button>
                     <Button onClick={() => handleExport(true)} variant="contained">
                         Com Gantt
+                    </Button>
+                </DialogActions>
+            </Dialog>
+
+            {/* PDF preview dialog */}
+            <Dialog
+                open={!!preview}
+                onClose={closePreview}
+                onClick={(e) => e.stopPropagation()}
+                fullScreen
+                PaperProps={{ sx: { display: "flex", flexDirection: "column" } }}
+            >
+                <DialogTitle>Pré-visualização do PDF</DialogTitle>
+                <DialogContent sx={{ p: 0, flex: 1, minHeight: 0 }}>
+                    {preview && (
+                        <Box component="iframe" src={preview.url} title="Pré-visualização do PDF" sx={{ width: "100%", height: "100%", border: 0, display: "block" }} />
+                    )}
+                </DialogContent>
+                <DialogActions>
+                    <Button onClick={closePreview}>Fechar</Button>
+                    <Button
+                        onClick={() => {
+                            preview?.download();
+                        }}
+                        variant="contained"
+                    >
+                        Baixar PDF
                     </Button>
                 </DialogActions>
             </Dialog>

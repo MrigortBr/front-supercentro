@@ -25,6 +25,7 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
 
     const BLUE:   [number,number,number] = [19, 81, 180];
     const YELLOW: [number,number,number] = [255, 205, 7];
+    const GRID:   [number,number,number] = [196, 209, 228];
     const actColors: Record<string, [number,number,number]> = {
         Concluído:      [22, 136, 33],
         "Em andamento": [19, 81, 180],
@@ -32,63 +33,8 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
         Planejado:      [255, 140, 0],
     };
 
-    // ── Page header ──
-    doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
-    doc.rect(0, 0, PW, 15, "F");
-    doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
-    doc.setFontSize(11);
-    doc.setFont("helvetica", "bold");
-    doc.text("Cronograma de Atividades", M, 10);
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "normal");
-    doc.text(institution.name, M, 14);
-
     const chartX = M + LABEL_W;
-    let y = 20;
-
-    // ── Gantt header — year row ──
-    doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
-    doc.rect(M, y, LABEL_W, HEADER_H, "F");
-    doc.rect(chartX, y, CHART_W, HEADER_Y_H, "F");
-
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "bold");
-    doc.text("Atividade", M + 3, y + HEADER_H / 2 + 2);
-
-    doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
-    doc.setFontSize(6.5);
-    doc.text("2025", chartX + W_2025 / 2, y + HEADER_Y_H / 2 + 2, { align: "center" });
-    doc.text("2026", chartX + W_2025 + (CHART_W - W_2025) / 2, y + HEADER_Y_H / 2 + 2, { align: "center" });
-
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(0.5);
-    doc.line(chartX + W_2025, y, chartX + W_2025, y + HEADER_Y_H);
-
-    // ── Gantt header — month row ──
-    const y2 = y + HEADER_Y_H;
-    doc.setFillColor(BLUE[0] + 15, BLUE[1] + 15, BLUE[2] + 15);
-    doc.rect(chartX, y2, CHART_W, HEADER_M_H, "F");
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(5.5);
-    doc.setFont("helvetica", "bold");
-
-    // Q1
-    doc.text("1º Tri", chartX + W_2025 + W_Q1 / 2, y2 + HEADER_M_H / 2 + 2, { align: "center" });
-    doc.setDrawColor(255, 255, 255);
-    doc.setLineWidth(0.3);
-    doc.line(chartX + W_2025, y2, chartX + W_2025, y2 + HEADER_M_H);
-    doc.line(chartX + W_2025 + W_Q1, y2, chartX + W_2025 + W_Q1, y2 + HEADER_M_H);
-
-    // Abr–Dez
-    ["Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].forEach((mon, i) => {
-        const mx = chartX + W_2025 + W_Q1 + i * W_MON;
-        doc.text(mon, mx + W_MON / 2, y2 + HEADER_M_H / 2 + 2, { align: "center" });
-        doc.line(mx, y2, mx, y2 + HEADER_M_H);
-    });
-
-    y += HEADER_H;
+    const FOOTER_TOP = PH - 8;
 
     // ── Date → x offset (mm) ──
     const dateToX = (dateStr: string): number | null => {
@@ -112,43 +58,129 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
     ];
 
     const drawGridLines = (rowY: number, rowH: number) => {
-        doc.setDrawColor(220, 220, 220);
-        doc.setLineWidth(0.2);
+        doc.setDrawColor(GRID[0], GRID[1], GRID[2]);
+        doc.setLineWidth(0.25);
         gridLines.forEach(ox => doc.line(chartX + ox, rowY, chartX + ox, rowY + rowH));
     };
 
-    const FOOTER_TOP = PH - 8;
+    // ── Draws title bar, table header, institution row and footer for the current page; returns y of first activity row ──
+    const drawChrome = (): number => {
+        // Page header
+        doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
+        doc.rect(0, 0, PW, 15, "F");
+        doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
+        doc.setFontSize(11);
+        doc.setFont("helvetica", "bold");
+        doc.text("Cronograma de Atividades", M, 10);
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text(institution.name, M, 14);
 
-    // ── Institution row ──
-    doc.setFillColor(224, 235, 250);
-    doc.rect(M, y, LABEL_W + CHART_W, INST_H, "F");
-    doc.setDrawColor(190, 210, 240);
-    doc.setLineWidth(0.25);
-    doc.rect(M, y, LABEL_W + CHART_W, INST_H);
-    doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
-    doc.setFontSize(7);
-    doc.setFont("helvetica", "bold");
-    doc.text((doc.splitTextToSize(institution.name, LABEL_W - 6) as string[])[0], M + 3, y + INST_H / 2 + 2);
-    drawGridLines(y, INST_H);
-    y += INST_H;
+        let cy = 20;
+
+        // ── Gantt header — year row ──
+        doc.setFillColor(BLUE[0], BLUE[1], BLUE[2]);
+        doc.rect(M, cy, LABEL_W, HEADER_H, "F");
+        doc.rect(chartX, cy, CHART_W, HEADER_Y_H, "F");
+
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text("Atividade", M + 3, cy + HEADER_H / 2 + 2);
+
+        doc.setTextColor(YELLOW[0], YELLOW[1], YELLOW[2]);
+        doc.setFontSize(6.5);
+        doc.text("2025", chartX + W_2025 / 2, cy + HEADER_Y_H / 2 + 2, { align: "center" });
+        doc.text("2026", chartX + W_2025 + (CHART_W - W_2025) / 2, cy + HEADER_Y_H / 2 + 2, { align: "center" });
+
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.5);
+        doc.line(chartX + W_2025, cy, chartX + W_2025, cy + HEADER_Y_H);
+
+        // ── Gantt header — month row ──
+        const cy2 = cy + HEADER_Y_H;
+        doc.setFillColor(BLUE[0] + 15, BLUE[1] + 15, BLUE[2] + 15);
+        doc.rect(chartX, cy2, CHART_W, HEADER_M_H, "F");
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(5.5);
+        doc.setFont("helvetica", "bold");
+
+        // Q1
+        doc.text("1º Tri", chartX + W_2025 + W_Q1 / 2, cy2 + HEADER_M_H / 2 + 2, { align: "center" });
+        doc.setDrawColor(255, 255, 255);
+        doc.setLineWidth(0.3);
+        doc.line(chartX + W_2025, cy2, chartX + W_2025, cy2 + HEADER_M_H);
+        doc.line(chartX + W_2025 + W_Q1, cy2, chartX + W_2025 + W_Q1, cy2 + HEADER_M_H);
+
+        // Abr–Dez
+        ["Abr","Mai","Jun","Jul","Ago","Set","Out","Nov","Dez"].forEach((mon, i) => {
+            const mx = chartX + W_2025 + W_Q1 + i * W_MON;
+            doc.text(mon, mx + W_MON / 2, cy2 + HEADER_M_H / 2 + 2, { align: "center" });
+            doc.line(mx, cy2, mx, cy2 + HEADER_M_H);
+        });
+
+        cy += HEADER_H;
+
+        // ── Institution row ──
+        doc.setFillColor(224, 235, 250);
+        doc.rect(M, cy, LABEL_W + CHART_W, INST_H, "F");
+        doc.setDrawColor(190, 210, 240);
+        doc.setLineWidth(0.25);
+        doc.rect(M, cy, LABEL_W + CHART_W, INST_H);
+        doc.setTextColor(BLUE[0], BLUE[1], BLUE[2]);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        doc.text((doc.splitTextToSize(institution.name, LABEL_W - 6) as string[])[0], M + 3, cy + INST_H / 2 + 2);
+        drawGridLines(cy, INST_H);
+        cy += INST_H;
+
+        // ── Footer ──
+        doc.setFillColor(248, 249, 250);
+        doc.rect(0, FOOTER_TOP, PW, PH - FOOTER_TOP, "F");
+        doc.setDrawColor(222, 226, 230);
+        doc.setLineWidth(0.3);
+        doc.line(0, FOOTER_TOP, PW, FOOTER_TOP);
+        doc.setTextColor(100, 100, 100);
+        doc.setFontSize(6);
+        doc.setFont("helvetica", "bold");
+        doc.text(
+            "Ministério da Saúde — DECAN © 2026 | Sistema de Monitoramento",
+            PW / 2, FOOTER_TOP + 5, { align: "center" }
+        );
+
+        return cy;
+    };
+
+    let y = drawChrome();
 
     // ── Activity rows ──
+    const NAME_LINE_H = 3.1;
+    const NAME_MAX_LINES = 2;
     (institution.activities || []).forEach((act, i) => {
-        if (y + ACT_H > FOOTER_TOP) return;
+        let nameLines = doc.splitTextToSize(act.name, LABEL_W - 8) as string[];
+        if (nameLines.length > NAME_MAX_LINES) nameLines = nameLines.slice(0, NAME_MAX_LINES);
+        const rowH = Math.max(ACT_H, nameLines.length * NAME_LINE_H + 3.4);
+
+        if (y + rowH > FOOTER_TOP) {
+            doc.addPage('a4', 'landscape');
+            y = drawChrome();
+        }
 
         const bg: [number,number,number] = i % 2 === 0 ? [255,255,255] : [248,249,250];
         doc.setFillColor(bg[0], bg[1], bg[2]);
-        doc.rect(M, y, LABEL_W + CHART_W, ACT_H, "F");
+        doc.rect(M, y, LABEL_W + CHART_W, rowH, "F");
         doc.setDrawColor(220, 220, 220);
         doc.setLineWidth(0.2);
-        doc.rect(M, y, LABEL_W + CHART_W, ACT_H);
+        doc.rect(M, y, LABEL_W + CHART_W, rowH);
 
-        doc.setTextColor(80, 80, 80);
-        doc.setFontSize(6);
-        doc.setFont("helvetica", "normal");
-        doc.text((doc.splitTextToSize(act.name, LABEL_W - 8) as string[])[0], M + 5, y + ACT_H / 2 + 2);
+        doc.setTextColor(60, 60, 60);
+        doc.setFontSize(7);
+        doc.setFont("helvetica", "bold");
+        const textStartY = y + rowH / 2 + 2 - ((nameLines.length - 1) * NAME_LINE_H) / 2;
+        nameLines.forEach((line, li) => doc.text(line, M + 5, textStartY + li * NAME_LINE_H));
 
-        drawGridLines(y, ACT_H);
+        drawGridLines(y, rowH);
 
         if (act.start_date && act.end_date) {
             const sx = dateToX(String(act.start_date));
@@ -157,29 +189,15 @@ function drawGanttPage(doc: jsPDF, institution: Institution) {
                 const [r,g,b] = actColors[act.status] || BLUE;
                 const BAR_H = ACT_H - 2.5;
                 doc.setFillColor(r, g, b);
-                doc.roundedRect(chartX + sx, y + (ACT_H - BAR_H) / 2, ex - sx, BAR_H, 0.8, 0.8, "F");
+                doc.roundedRect(chartX + sx, y + (rowH - BAR_H) / 2, ex - sx, BAR_H, 0.8, 0.8, "F");
             }
         }
 
-        y += ACT_H;
+        y += rowH;
     });
-
-    // ── Footer ──
-    doc.setFillColor(248, 249, 250);
-    doc.rect(0, FOOTER_TOP, PW, PH - FOOTER_TOP, "F");
-    doc.setDrawColor(222, 226, 230);
-    doc.setLineWidth(0.3);
-    doc.line(0, FOOTER_TOP, PW, FOOTER_TOP);
-    doc.setTextColor(120, 120, 120);
-    doc.setFontSize(6);
-    doc.setFont("helvetica", "normal");
-    doc.text(
-        "Ministério da Saúde — DECAN © 2026 | Sistema de Monitoramento",
-        PW / 2, FOOTER_TOP + 5, { align: "center" }
-    );
 }
 
-export function exportInstitutionDetailPDF(institution: Institution, withGantt = false) {
+function buildInstitutionDetailPDF(institution: Institution, withGantt = false): { doc: jsPDF; filename: string } {
     const doc = new jsPDF("p", "mm", "a4");
     const PW  = doc.internal.pageSize.getWidth();   // 210
     const PH  = doc.internal.pageSize.getHeight();  // 297
@@ -262,6 +280,15 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         return cy - topY + ROW_H;
     };
 
+    // ── measureTallField: wraps the value and computes the box height it needs ──
+    const TALL_LINE_H = 4;
+    const measureTallField = (value: string, w: number): { lines: string[]; height: number } => {
+        doc.setFontSize(8.5);
+        doc.setFont("helvetica", "normal");
+        const lines = doc.splitTextToSize(value || "Nenhuma", w - 6) as string[];
+        return { lines, height: Math.max(18, lines.length * TALL_LINE_H + 8) };
+    };
+
     // ── drawField: outlined text-field style box ──
     const drawField = (
         label: string,
@@ -271,7 +298,12 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         w: number,
         tall = false,
     ): number => {
-        const H = tall ? 18 : 11;
+        let H = 11;
+        let tallData: { lines: string[]; height: number } | null = null;
+        if (tall) {
+            tallData = measureTallField(value, w);
+            H = tallData.height;
+        }
         doc.setFillColor(255, 255, 255);
         doc.setDrawColor(180, 180, 180);
         doc.setLineWidth(0.35);
@@ -284,13 +316,11 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         doc.text(label, x + 3, y + 4);
 
         // value
-        if (tall) {
+        if (tall && tallData) {
             doc.setFontSize(8.5);
-            doc.setFont(value ? "helvetica" : "helvetica", "normal");
+            doc.setFont("helvetica", value ? "normal" : "italic");
             doc.setTextColor(value ? 40 : 160, value ? 40 : 160, value ? 40 : 160);
-            if (!value) doc.setFont("helvetica", "italic");
-            const lines = doc.splitTextToSize(value || "Nenhuma", w - 6) as string[];
-            doc.text(lines, x + 3, y + 9);
+            doc.text(tallData.lines, x + 3, y + 9);
         } else {
             doc.setFontSize(9);
             doc.setFont("helvetica", "normal");
@@ -371,7 +401,9 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
     y += drawField("Responsável *", institution.responsible || "—", M, y, CW);
 
     // Observações
-    y += drawField("Observações", institution.observations || "", M, y, CW, true);
+    const obsValue = institution.observations || "";
+    y = checkPage(y, measureTallField(obsValue, CW).height + 2.5);
+    y += drawField("Observações", obsValue, M, y, CW, true);
     y += 2;
 
     // ════════════════════════════════════════════════════════
@@ -422,7 +454,7 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
                     .join(" | ");
                 obsLines = doc.splitTextToSize(obsText, CW - 10) as string[];
             }
-            const obsH = obsLines.length > 0 ? obsLines.length * 4.5 + 3 : 0;
+            const obsH = obsLines.length > 0 ? obsLines.length * 4.5 + 11 : 0;
 
             const CARD_H = 9 + rows * 6.5 + obsH;
             y = checkPage(y, CARD_H + 2);
@@ -443,12 +475,17 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
             const chipsBottomY = y + 8.5 + (rows - 1) * 6.5;
             drawChipsRow(chips, M + 4, y + 8.5, CW - 8);
 
-            // Observações (itálico, abaixo dos chips)
+            // Observações (abaixo dos chips)
             if (obsLines.length > 0) {
+                doc.setFontSize(6);
+                doc.setFont("helvetica", "bold");
+                doc.setTextColor(0, 0, 0);
+                doc.text("OBSERVAÇÕES DA ATIVIDADE", M + 5, chipsBottomY + 12);
+
                 doc.setFontSize(7.5);
-                doc.setFont("helvetica", "italic");
-                doc.setTextColor(90, 90, 90);
-                doc.text(obsLines, M + 5, chipsBottomY + 8);
+                doc.setFont("helvetica", "normal");
+                doc.setTextColor(40, 40, 40);
+                doc.text(obsLines, M + 5, chipsBottomY + 17);
             }
 
             y += CARD_H + 2;
@@ -539,5 +576,18 @@ export function exportInstitutionDetailPDF(institution: Institution, withGantt =
         .replace(/\s+/g, "-")
         .replace(/[^a-z0-9-]/g, "")
         .slice(0, 40);
-    doc.save(`${slug}-${new Date().toISOString().slice(0, 10)}.pdf`);
+    const filename = `${slug}-${new Date().toISOString().slice(0, 10)}.pdf`;
+
+    return { doc, filename };
+}
+
+export function exportInstitutionDetailPDF(institution: Institution, withGantt = false) {
+    const { doc, filename } = buildInstitutionDetailPDF(institution, withGantt);
+    doc.save(filename);
+}
+
+export function previewInstitutionDetailPDF(institution: Institution, withGantt = false): { url: string; download: () => void } {
+    const { doc, filename } = buildInstitutionDetailPDF(institution, withGantt);
+    const url = doc.output("bloburl") as unknown as string;
+    return { url, download: () => doc.save(filename) };
 }
