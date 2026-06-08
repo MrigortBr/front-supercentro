@@ -398,13 +398,30 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                 placeholder="Ex: FCECON – Manaus"
                                 required
                                 disabled={readOnly}
+                                sx={{
+                                    "& .MuiInputBase-input.Mui-disabled": {
+                                        WebkitTextFillColor: "#000",
+                                        color: "#000",
+                                    },
+                                }}
                             />
                         </Box>
 
                         {/* State + Status row */}
                         <Grid container spacing={2} sx={{ mb: 2.5 }}>
                             <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth size="small" required disabled={readOnly}>
+                                <FormControl
+                                    fullWidth
+                                    size="small"
+                                    required
+                                    disabled={readOnly}
+                                    sx={{
+                                        "& .MuiInputBase-input.Mui-disabled": {
+                                            WebkitTextFillColor: "#000",
+                                            color: "#000",
+                                        },
+                                    }}
+                                >
                                     <InputLabel>Estado</InputLabel>
                                     <Select
                                         label="Estado"
@@ -423,7 +440,18 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                 </FormControl>
                             </Grid>
                             <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth size="small" required disabled={readOnly}>
+                                <FormControl
+                                    fullWidth
+                                    size="small"
+                                    required
+                                    disabled={readOnly}
+                                    sx={{
+                                        "& .MuiInputBase-input.Mui-disabled": {
+                                            WebkitTextFillColor: "#000",
+                                            color: "#000",
+                                        },
+                                    }}
+                                >
                                     <InputLabel>Status</InputLabel>
                                     <Select
                                         label="Status"
@@ -446,6 +474,12 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                         <Grid container spacing={2} sx={{ mb: 2.5 }}>
                             <Grid item xs={12} sm={6}>
                                 <TextField
+                                    sx={{
+                                        "& .MuiInputBase-input.Mui-disabled": {
+                                            WebkitTextFillColor: "#000",
+                                            color: "#000",
+                                        },
+                                    }}
                                     label="Responsável"
                                     fullWidth
                                     value={formData.responsible}
@@ -468,6 +502,12 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                         })
                                     }
                                     disabled={readOnly}
+                                    sx={{
+                                        "& .MuiInputBase-input.Mui-disabled": {
+                                            WebkitTextFillColor: "#000",
+                                            color: "#000",
+                                        },
+                                    }}
                                     InputLabelProps={{ shrink: true }}
                                 />
                             </Grid>
@@ -484,6 +524,12 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                 onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
                                 placeholder="Informações adicionais..."
                                 disabled={readOnly}
+                                sx={{
+                                    "& .MuiInputBase-input.Mui-disabled": {
+                                        WebkitTextFillColor: "#000",
+                                        color: "#000",
+                                    },
+                                }}
                             />
                         </Box>
 
@@ -696,9 +742,6 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                             <TextField
                                                                 size="small"
                                                                 fullWidth
-                                                                inputProps={{
-                                                                    max: editingActivityData.end_date || undefined,
-                                                                }}
                                                                 type="date"
                                                                 value={
                                                                     editingActivityData.end_date
