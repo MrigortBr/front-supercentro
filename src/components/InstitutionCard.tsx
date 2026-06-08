@@ -54,7 +54,7 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
 
         return Math.round(((now - start) / (end - start)) * 100);
     };
-    const activitiesWithDates = institution.activities.filter((a) => a.start_date && a.end_date);
+    // const activitiesWithDates = institution.activities.filter((a) => a.start_date && a.end_date);
     const avgProgress =
         institution.activities.length > 0
             ? Math.round(institution.activities.reduce((sum, a) => sum + calculateProgress(a), 0) / institution.activities.length)
