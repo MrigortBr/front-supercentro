@@ -23,7 +23,7 @@ import {
 	LinearProgress,
 } from "@mui/material";
 
-import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2, MapPin } from "lucide-react";
+import { BarChart3, Plus, Download, Search, Save, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
 
 import InstitutionCard from "../components/InstitutionCard";
 import InstitutionForm from "../components/InstitutionForm";
@@ -781,7 +781,7 @@ export default function MonitoringSystem() {
 
 					<Tab value="gantt" icon={<Calendar size={18} />} iconPosition="start" label="Gantt" />
 
-					<Tab value="map" icon={<MapPin size={18} />} iconPosition="start" label="Mapa" />
+					{/* <Tab value="map" icon={<MapPin size={18} />} iconPosition="start" label="Mapa" /> */}
 				</Tabs>
 
 				{currentView !== "map" && (
