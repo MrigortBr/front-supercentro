@@ -70,7 +70,7 @@ export default function LoginPanel() {
 
                     <Title>Entrar no sistema</Title>
 
-                    <Description>Use seu login institucional para acessar o SAH.</Description>
+                    <Description>Use seu login institucional para acessar o SUPER CENTRO.</Description>
                 </Header>
 
                 <Form>
@@ -96,7 +96,7 @@ export default function LoginPanel() {
                 </Form>
 
                 <Footer>
-                    <Version>SAH v1.0 · 2026</Version>
+                    <Version>SUPER CENTRO v1.0 · 2026</Version>
 
                     {/* <Links>
                         <a href="#">Suporte</a>

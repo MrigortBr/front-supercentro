@@ -15,7 +15,7 @@ export const FooterContainer = styled.footer`
     font-size: ${({ theme }) => theme.fontSizes.xs};
     color: ${({ theme }) => theme.colors.greenDark};
 
-    border-top: 1px solid ${({ theme }) => theme.colors.greenBackground};
+    border-top: 1px solid ${({ theme }) => theme.colors.blueBackground};
     @media (max-width: 768px) {
         width: 100dvw;
         height: 12dvh;
@@ -58,6 +58,7 @@ export const ImageWrapper = styled.div`
     max-height: 9vh;
     width: auto;
     aspect-ratio: 3 / 1;
+    display: flex;
 
     @media (max-width: 768px) {
         aspect-ratio: 3 / 1;
@@ -65,5 +66,12 @@ export const ImageWrapper = styled.div`
         height: auto;
         max-height: 9dvh;
         flex-wrap: wrap;
+    }
+
+    & > img {
+        height: 80%;
+        max-height: 9vh;
+        aspect-ratio: 3 / 1;
+        margin: auto;
     }
 `;
