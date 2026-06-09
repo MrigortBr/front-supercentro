@@ -99,7 +99,7 @@ export default function MonitoringSystem() {
 			>
 				<Routes>
 					<Route
-						path="/"
+						path="/instituicoes"
 						element={
 							<InstitutionsListPage
 								filteredInstitutions={filteredInstitutions}
