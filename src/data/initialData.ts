@@ -7,7 +7,7 @@ export const initialInstitutions: Institution[] = [
         state: "AM",
         responsible: "ACC",
         status: "Em andamento",
-        observations: "",
+        observations: [],
         activities: [
             { name: "Entrega Scanner", responsible: "ACC", start_date: "2026-04-01", end_date: "2026-04-30", status: "Concluído" },
             { name: "Visita Técnica", responsible: "ACC", start_date: "2026-05-01", end_date: "2026-05-15", status: "Em andamento" },
@@ -27,7 +27,7 @@ export const initialInstitutions: Institution[] = [
         state: "PI",
         responsible: "ACC",
         status: "Em andamento",
-        observations: "Sala do scanner com previsão de finalização da obra em 20/05",
+        observations: [{ created_at: "2026-05-01", description: "Sala do scanner com previsão de finalização da obra em 20/05" }],
         activities: [
             { name: "Entrega Scanner", responsible: "ACC", start_date: "2026-05-01", end_date: "2026-05-20", status: "Em andamento" },
             { name: "Visita Técnica", responsible: "ACC", start_date: "2026-05-21", end_date: "2026-06-10", status: "Projetado" },
@@ -40,7 +40,7 @@ export const initialInstitutions: Institution[] = [
         state: "MG",
         responsible: "ACC",
         status: "Em andamento",
-        observations: "",
+        observations: [],
         activities: [
             { name: "Entrega Scanner", responsible: "ACC", start_date: "2026-04-01", end_date: "2026-04-15", status: "Concluído" },
             { name: "Visita Técnica", responsible: "ACC", start_date: "2026-04-16", end_date: "2026-05-10", status: "Em andamento" },
@@ -53,7 +53,7 @@ export const initialInstitutions: Institution[] = [
         state: "CE",
         responsible: "ACC",
         status: "Concluído",
-        observations: "",
+        observations: [],
         activities: [{ name: "Projeto entregue", responsible: "ACC", start_date: "2026-04-01", end_date: "2026-04-30", status: "Concluído" }],
         machine: [],
     },
@@ -63,7 +63,7 @@ export const initialInstitutions: Institution[] = [
         state: "BA",
         responsible: "ACC",
         status: "Em andamento",
-        observations: "Finalização da obra prevista até junho de 2026",
+        observations: [{ created_at: "2026-05-01", description: "Finalização da obra prevista até junho de 2026" }],
         activities: [
             { name: "Obras de adequação", responsible: "Estado", start_date: "2026-05-01", end_date: "2026-06-30", status: "Em andamento" },
             { name: "Instalação de equipamentos", responsible: "ACC", start_date: "2026-07-01", end_date: "2026-08-15", status: "Projetado" },
@@ -76,7 +76,7 @@ export const initialInstitutions: Institution[] = [
         state: "PE",
         responsible: "ACC",
         status: "Em andamento",
-        observations: "Finalização da obra prevista para maio de 2026",
+        observations: [{ created_at: "2026-05-01", description: "Finalização da obra prevista para maio de 2026" }],
         activities: [
             { name: "Obras de adequação", responsible: "Estado", start_date: "2026-04-15", end_date: "2026-05-31", status: "Em andamento" },
             { name: "Entrega Scanner", responsible: "ACC", start_date: "2026-06-01", end_date: "2026-06-30", status: "Projetado" },
@@ -89,7 +89,7 @@ export const initialInstitutions: Institution[] = [
         state: "PA",
         responsible: "ACC",
         status: "Pendente",
-        observations: "Redefinição final em 08/05/2026",
+        observations: [{ created_at: "2026-05-08", description: "Redefinição final em 08/05/2026" }],
         activities: [{ name: "Reunião de definição", responsible: "ACC", start_date: "2026-05-08", end_date: "2026-05-08", status: "Projetado" }],
         machine: [],
     },
@@ -99,7 +99,7 @@ export const initialInstitutions: Institution[] = [
         state: "RJ",
         responsible: "ACC",
         status: "Em andamento",
-        observations: "",
+        observations: [],
         activities: [
             { name: "Entrega Scanner", responsible: "ACC", start_date: "2026-04-10", end_date: "2026-05-15", status: "Concluído" },
             { name: "Capacitação da equipe", responsible: "ACC", start_date: "2026-05-20", end_date: "2026-06-20", status: "Projetado" },

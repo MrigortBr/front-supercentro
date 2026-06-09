@@ -23,7 +23,7 @@ import {
     Collapse,
 } from "@mui/material";
 import { Plus, Pencil, Trash2, Calendar, X, Upload, MessageSquare, ChevronRight, ChevronLeft } from "lucide-react";
-import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto, ActivityObservation } from "../types";
+import { Institution, Activity, InstitutionStatus, ActivityStatus, InstitutionEquipment, InstitutionPhoto, ActivityObservation, InstitutionObservation } from "../types";
 import { chipColors } from "../data/const";
 import { api } from "../service";
 import { PREDEFINED_BASE } from "../data/predefined";
@@ -51,7 +51,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [formData, setFormData] = useState<Omit<Institution, "id">>(
         institution
             ? { ...institution }
-            : { name: "", state: "", responsible: "", status: "Não iniciado", observations: "", activities: [], machine: [], datepreview: new Date() }
+            : { name: "", state: "", responsible: "", status: "Não iniciado", observations: [], activities: [], machine: [], datepreview: new Date() }
     );
     const [newActivity, setNewActivity] = useState<Activity>({ ...PREDEFINED_BASE.activity.empty });
     const [editingActivityIdx, setEditingActivityIdx] = useState<number | null>(null);
@@ -70,6 +70,12 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
     const [editingObsInEditIdx, setEditingObsInEditIdx] = useState<number | null>(null);
     const [editingObsInNewIdx, setEditingObsInNewIdx] = useState<number | null>(null);
     const [expandedObsIdx, setExpandedObsIdx] = useState<number | null>(null);
+
+    const [newInstObs, setNewInstObs] = useState<Omit<InstitutionObservation, "id" | "institution_id">>({
+        created_at: todayISO,
+        description: "",
+    });
+    const [editingInstObsIdx, setEditingInstObsIdx] = useState<number | null>(null);
 
     const [photos, setPhotos] = useState<InstitutionPhoto[]>([]);
     const [loadingPhotos, setLoadingPhotos] = useState(false);
@@ -329,15 +335,42 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
         }
     };
 
+    const addInstObs = () => {
+        if (!newInstObs.description.trim() || !newInstObs.created_at) return;
+        if (editingInstObsIdx !== null) {
+            setFormData((prev) => ({
+                ...prev,
+                observations: (prev.observations || []).map((o, i) => (i === editingInstObsIdx ? { ...newInstObs } : o)),
+            }));
+            setEditingInstObsIdx(null);
+        } else {
+            setFormData((prev) => ({ ...prev, observations: [...(prev.observations || []), { ...newInstObs }] }));
+        }
+        setNewInstObs({ created_at: todayISO, description: "" });
+    };
+
+    const removeInstObs = (idx: number) => {
+        setFormData((prev) => ({ ...prev, observations: (prev.observations || []).filter((_, i) => i !== idx) }));
+        if (editingInstObsIdx === idx) {
+            setEditingInstObsIdx(null);
+            setNewInstObs({ created_at: todayISO, description: "" });
+        }
+    };
+
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
-        const { name, state, responsible, status, observations, datepreview } = formData;
+        const { name, state, responsible, status, datepreview } = formData;
         onSave({
             name,
             state,
             responsible,
             status,
-            observations,
+            observations: (formData.observations || []).map(({ id, institution_id, created_at, description }) => ({
+                ...(id ? { id } : {}),
+                ...(institution_id ? { institution_id } : {}),
+                created_at,
+                description,
+            })),
             datepreview,
             activities: formData.activities.map(({ name, responsible, observation, start_date, end_date, status }) => ({
                 name,
@@ -515,22 +548,106 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
 
                         {/* Observations */}
                         <Box sx={{ mb: 2.5 }}>
-                            <TextField
-                                label="Observações"
-                                fullWidth
-                                multiline
-                                rows={3}
-                                value={formData.observations}
-                                onChange={(e) => setFormData({ ...formData, observations: e.target.value })}
-                                placeholder="Informações adicionais..."
-                                disabled={readOnly}
-                                sx={{
-                                    "& .MuiInputBase-input.Mui-disabled": {
-                                        WebkitTextFillColor: "#000",
-                                        color: "#000",
-                                    },
-                                }}
-                            />
+                            <Typography variant="body2" fontWeight={500} sx={{ mb: 1, color: "#495057" }}>
+                                Observações
+                            </Typography>
+                            {(formData.observations || []).length > 0 && (
+                                <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, mb: 1 }}>
+                                    {(formData.observations || []).map((obs, obsIdx) => (
+                                        <Box
+                                            key={obsIdx}
+                                            sx={{
+                                                display: "flex",
+                                                alignItems: "center",
+                                                gap: 1,
+                                                bgcolor: editingInstObsIdx === obsIdx ? "#fff9e6" : "#f8f9fa",
+                                                p: 0.75,
+                                                borderRadius: 1,
+                                                border: `1px solid ${editingInstObsIdx === obsIdx ? "#f0ad00" : "#dee2e6"}`,
+                                            }}
+                                        >
+                                            <Typography variant="caption" sx={{ color: "#666", minWidth: 80, flexShrink: 0 }}>
+                                                {new Date(obs.created_at).toLocaleDateString("pt-BR", { timeZone: "UTC" })}
+                                            </Typography>
+                                            <Typography variant="caption" sx={{ flex: 1 }}>
+                                                {obs.description}
+                                            </Typography>
+                                            {!readOnly && (
+                                                <>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => {
+                                                            setEditingInstObsIdx(obsIdx);
+                                                            setNewInstObs({
+                                                                created_at: obs.created_at?.split("T")[0] ?? "",
+                                                                description: obs.description,
+                                                            });
+                                                        }}
+                                                        sx={{ color: "primary.main", p: 0.25 }}
+                                                    >
+                                                        <Pencil size={12} />
+                                                    </IconButton>
+                                                    <IconButton
+                                                        size="small"
+                                                        onClick={() => removeInstObs(obsIdx)}
+                                                        sx={{ color: "error.main", p: 0.25 }}
+                                                    >
+                                                        <Trash2 size={12} />
+                                                    </IconButton>
+                                                </>
+                                            )}
+                                        </Box>
+                                    ))}
+                                </Box>
+                            )}
+                            {readOnly && (formData.observations || []).length === 0 && (
+                                <Typography variant="body2" sx={{ color: "#adb5bd", fontStyle: "italic" }}>
+                                    Nenhuma
+                                </Typography>
+                            )}
+                            {!readOnly && (
+                                <Grid container spacing={1} alignItems="flex-end">
+                                    <Grid item xs={12} sm={3}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            type="date"
+                                            label="Data"
+                                            value={newInstObs.created_at}
+                                            onChange={(e) => setNewInstObs({ ...newInstObs, created_at: e.target.value })}
+                                            InputLabelProps={{ shrink: true }}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={7}>
+                                        <TextField
+                                            size="small"
+                                            fullWidth
+                                            placeholder="Texto da observação"
+                                            value={newInstObs.description}
+                                            onChange={(e) => setNewInstObs({ ...newInstObs, description: e.target.value })}
+                                            onBlur={addInstObs}
+                                        />
+                                    </Grid>
+                                    <Grid item xs={12} sm={2}>
+                                        <Button
+                                            variant="outlined"
+                                            fullWidth
+                                            size="small"
+                                            startIcon={editingInstObsIdx !== null ? <Pencil size={14} /> : <Plus size={14} />}
+                                            onClick={addInstObs}
+                                            sx={{
+                                                height: 40,
+                                                borderColor: editingInstObsIdx !== null ? "#f0ad00" : "primary.main",
+                                                color: editingInstObsIdx !== null ? "#f0ad00" : "primary.main",
+                                                bgcolor: editingInstObsIdx !== null ? "#fff9e6" : "#e7f1ff",
+                                                "&:hover": { bgcolor: editingInstObsIdx !== null ? "#fff3cc" : "#cce0ff" },
+                                            }}
+                                        >
+                                            {editingInstObsIdx !== null ? "Salvar" : "Adicionar"}
+                                        </Button>
+                                    </Grid>
+                                </Grid>
+                            )}
                         </Box>
 
                         {/* Activities */}
@@ -677,6 +794,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                                     onChange={(e) =>
                                                                         setNewObsForEdit({ ...newObsForEdit, text_observation: e.target.value })
                                                                     }
+                                                                    onBlur={addObsToEdit}
                                                                 />
                                                             </Grid>
                                                             <Grid item xs={12} sm={2}>
@@ -1084,6 +1202,7 @@ export default function InstitutionForm({ institution, onSave, onCancel, onEdit,
                                                     placeholder="Texto da observação"
                                                     value={newObsForNew.text_observation}
                                                     onChange={(e) => setNewObsForNew({ ...newObsForNew, text_observation: e.target.value })}
+                                                    onBlur={addObsToNew}
                                                 />
                                             </Grid>
                                             <Grid item xs={12} sm={2}>
