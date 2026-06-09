@@ -469,7 +469,11 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false, 
     y += drawField("Responsável *", institution.responsible || "—", M, y, CW);
 
     // Observações
-    const obsValue = institution.observations || "";
+    const obsValue = institution.observations?.length
+        ? institution.observations
+              .map((o) => `• ${new Date(o.created_at).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.description}`)
+              .join("\n")
+        : "";
     y = checkPage(y, measureTallField(obsValue, CW).height + 2.5);
     y += drawField("Observações", obsValue, M, y, CW, true);
     y += 2;
@@ -517,10 +521,10 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false, 
             if (activity.observation && activity.observation.length > 0) {
                 doc.setFontSize(7.5);
                 doc.setFont("helvetica", "normal");
-                const obsText = activity.observation
-                    .map((o) => `${new Date(o.date_observation).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.text_observation}`)
-                    .join(" | ");
-                obsLines = doc.splitTextToSize(obsText, CW - 10) as string[];
+                activity.observation.forEach((o) => {
+                    const bullet = `• ${new Date(o.date_observation).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.text_observation}`;
+                    obsLines.push(...(doc.splitTextToSize(bullet, CW - 10) as string[]));
+                });
             }
             const obsH = obsLines.length > 0 ? obsLines.length * 4.5 + 11 : 0;
 

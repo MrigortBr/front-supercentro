@@ -221,16 +221,17 @@ export default function InstitutionCard({ institution, onView, onEdit, onDelete 
                         </Typography>
 
                         <Box sx={{ maxHeight: 50, overflowY: "auto", flex: 1 }}>
-                            <Typography
-                                variant="body2"
-                                sx={{
-                                    color: institution.observations ? "#495057" : "#adb5bd",
-                                    lineHeight: 1.5,
-                                    fontStyle: institution.observations ? "normal" : "italic",
-                                }}
-                            >
-                                {institution.observations || "Nenhuma"}
-                            </Typography>
+                            {institution.observations?.length ? (
+                                institution.observations.map((obs, i) => (
+                                    <Typography key={i} variant="body2" sx={{ color: "#495057", lineHeight: 1.5 }}>
+                                        {new Date(obs.created_at).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: {obs.description}
+                                    </Typography>
+                                ))
+                            ) : (
+                                <Typography variant="body2" sx={{ color: "#adb5bd", fontStyle: "italic" }}>
+                                    Nenhuma
+                                </Typography>
+                            )}
                         </Box>
                     </Box>
                 </Box>

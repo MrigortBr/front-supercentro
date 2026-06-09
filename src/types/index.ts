@@ -9,6 +9,13 @@ export interface ActivityObservation {
     text_observation: string;
 }
 
+export interface InstitutionObservation {
+    id?: number;
+    institution_id?: number;
+    created_at: string;
+    description: string;
+}
+
 export interface Activity {
     name: string;
     responsible: string;
@@ -24,7 +31,7 @@ export interface Institution {
     state: string;
     responsible: string;
     status: InstitutionStatus;
-    observations: string;
+    observations: InstitutionObservation[];
     activities: Activity[];
     datepreview?: Date;
     machine: InstitutionEquipment[];

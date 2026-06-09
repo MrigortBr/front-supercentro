@@ -96,8 +96,11 @@ export const exportInstitutionsPDF = (filteredInstitutions: Institution[]) => {
         doc.setFont("helvetica", "normal");
         doc.text(`Responsável: ${inst.responsible || "—"}`, margin + 2, y);
         y += 5;
-        if (inst.observations) {
-            const lines = doc.splitTextToSize(`Observações: ${inst.observations}`, pageWidth - 2 * margin - 4) as string[];
+        if (inst.observations && inst.observations.length > 0) {
+            const obsText = inst.observations
+                .map((o) => `${new Date(o.created_at).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.description}`)
+                .join(" | ");
+            const lines = doc.splitTextToSize(`Observações: ${obsText}`, pageWidth - 2 * margin - 4) as string[];
             doc.text(lines, margin + 2, y);
             y += lines.length * 5;
         }
