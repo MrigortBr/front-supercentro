@@ -181,7 +181,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                                     </Box>
                                 </Tooltip>
 
-                                <User size={18} color="rgba(255,255,255,0.8)" />
+                                {/* <User size={18} color="rgba(255,255,255,0.8)" /> */}
 
                                 <Box sx={{ display: { xs: "none", sm: "block" } }}>
                                     <Typography sx={{ color: "white", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
@@ -229,7 +229,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                     variant="scrollable"
                     scrollButtons="auto"
                     allowScrollButtonsMobile
-                    sx={{ minHeight: { xs: 40, sm: 48 }, flexShrink: 1, minWidth: 0 }}
+                    sx={{ minHeight: { xs: 40, sm: 48 }, flexShrink: 1, minWidth: 0, alignSelf: "stretch" }}
                 >
                     <Tab
                         value="/instituicoes"
@@ -265,6 +265,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                             bgcolor: "#168821",
                             minWidth: { xs: 40, sm: "auto" },
                             px: { xs: 1, sm: 2 },
+                            my: 1,
                             "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
                         }}
                     >
