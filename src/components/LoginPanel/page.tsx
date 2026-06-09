@@ -6,17 +6,10 @@ import {
     Eyebrow,
     Field,
     Footer,
-    ForgotPassword,
     Form,
     Header,
     Input,
-    Links,
     LoginButton,
-    ProfileCard,
-    ProfileDescription,
-    ProfileGrid,
-    ProfileIcon,
-    ProfileName,
     SectionLabel,
     Title,
     Version,
@@ -25,15 +18,28 @@ import {
     GovText,
 } from "./styled";
 import { MouseEvent, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { validateLogin } from "../../utils/validateEmail";
 import Loading from "../spinner/page";
 import { useAlert } from "../../providers/alert/page";
+import { useSession } from "../../providers/session/page";
+import { api } from "../../service";
+
+function parseTokenExpiry(token: string): number {
+    try {
+        const payload = JSON.parse(atob(token.split(".")[1]));
+        if (payload.exp) return payload.exp * 1000;
+    } catch {}
+    return Date.now() + 60 * 60 * 1000;
+}
 
 export default function LoginPanel() {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
     const { callMessage } = useAlert();
+    const { setSession } = useSession();
     const [isLoading, setIsloading] = useState(false);
+    const navigate = useNavigate();
 
     async function handleLogin(e: MouseEvent<HTMLButtonElement>) {
         e.preventDefault();
@@ -48,10 +54,22 @@ export default function LoginPanel() {
             return null;
         }
 
-        // const responseLogin = await login(email, password);
+        const responseLogin = await api.login(email, password);
 
-        // if (!responseLogin.status) callMessage(responseLogin.message ?? "Sistema SAH está temporariamente fora do ar!", "error");
+        if (!responseLogin.status) {
+            callMessage(responseLogin.message ?? "Sistema Super Centro está temporariamente fora do ar!", "error");
+            setIsloading(false);
+            return null;
+        }
+
+        if (responseLogin.token && responseLogin.user) {
+            api.setAuthToken(responseLogin.token);
+            const expiresAt = parseTokenExpiry(responseLogin.token);
+            setSession({ token: responseLogin.token, user: responseLogin.user, expiresAt });
+        }
+
         setIsloading(false);
+        navigate("/instituicoes");
     }
 
     return (
