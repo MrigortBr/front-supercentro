@@ -62,11 +62,11 @@ export const exportInstitutionsPDF = (filteredInstitutions: Institution[]) => {
             activitiesRows.push([a.name, a.responsible || "—", formatDate(a.start_date), formatDate(a.end_date), a.status]);
             if (a.observation && a.observation.length > 0) {
                 const obsText = a.observation
-                    .map((o) => `${formatDate(o.date_observation)}: ${o.text_observation}`)
-                    .join("  |  ");
+                    .map((o) => `• ${formatDate(o.date_observation)}: ${o.text_observation}`)
+                    .join("\n");
                 activitiesRows.push([
                     {
-                        content: `Obs.: ${obsText}`,
+                        content: obsText,
                         colSpan: 5,
                         styles: { fontStyle: "italic", textColor: [90, 90, 90], fontSize: 7, fillColor: [248, 249, 250] },
                     },
@@ -97,12 +97,16 @@ export const exportInstitutionsPDF = (filteredInstitutions: Institution[]) => {
         doc.text(`Responsável: ${inst.responsible || "—"}`, margin + 2, y);
         y += 5;
         if (inst.observations && inst.observations.length > 0) {
-            const obsText = inst.observations
-                .map((o) => `${new Date(o.created_at).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.description}`)
-                .join(" | ");
-            const lines = doc.splitTextToSize(`Observações: ${obsText}`, pageWidth - 2 * margin - 4) as string[];
-            doc.text(lines, margin + 2, y);
-            y += lines.length * 5;
+            doc.setFont("helvetica", "bold");
+            doc.text("Observações:", margin + 2, y);
+            y += 5;
+            doc.setFont("helvetica", "normal");
+            inst.observations.forEach((o) => {
+                const bullet = `• ${new Date(o.created_at).toLocaleDateString("pt-BR", { timeZone: "UTC" })}: ${o.description}`;
+                const lines = doc.splitTextToSize(bullet, pageWidth - 2 * margin - 6) as string[];
+                doc.text(lines, margin + 3, y);
+                y += lines.length * 5;
+            });
         }
 
         if (activitiesRows.length > 0) {
