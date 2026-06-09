@@ -1,3 +1,4 @@
+import BrazilMap from "../components/BrazilMap";
 import { useState, useEffect, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
@@ -16,7 +17,6 @@ import InstitutionForm from "../components/InstitutionForm";
 import Footer from "../components/Footer";
 import InstitutionsListPage from "./InstitutionsListPage";
 import GanttPage from "./GanttPage";
-import MapPage from "./MapPage";
 
 export default function MonitoringSystem() {
     const {
@@ -69,6 +69,58 @@ export default function MonitoringSystem() {
 		if (isGanttRoute) exportGanttPDF(filteredInstitutions);
 		else exportInstitutionsPDF(filteredInstitutions);
 	};
+
+
+	const mapaData = filteredInstitutions.map((institution) => {
+		const activitiesWithDates = institution.activities.filter(
+			(a) => a.start_date && a.end_date
+		);
+
+		const avgProgress =
+			activitiesWithDates.length > 0
+				? Math.round(
+					activitiesWithDates.reduce((sum, activity) => {
+						const start = new Date(activity.start_date).getTime();
+						const end = new Date(activity.end_date).getTime();
+						const now = Date.now();
+
+						let progress = 0;
+
+						if (end <= start) progress = 100;
+						else if (now <= start) progress = 0;
+						else if (now >= end) progress = 100;
+						else {
+							progress = Math.round(
+								((now - start) / (end - start)) * 100
+							);
+						}
+
+						return sum + progress;
+					}, 0) / activitiesWithDates.length
+				)
+				: 0;
+
+		return {
+			sigla: institution.state,
+			percentual: avgProgress,
+		};
+	});
+
+	const todasUFs = [
+		"AC", "AL", "AP", "AM", "BA", "CE", "DF",
+		"ES", "GO", "MA", "MT", "MS", "MG", "PA",
+		"PB", "PR", "PE", "PI", "RJ", "RN", "RS",
+		"RO", "RR", "SC", "SP", "SE", "TO"
+	];
+
+	const mapaDataCompleto = todasUFs.map((uf) => {
+		const encontrado = mapaData.find((m) => m.sigla === uf);
+		return {
+			sigla: uf,
+			percentual: encontrado?.percentual ?? 0,
+		};
+	});
+
 
 	return (
 		<Box
@@ -128,7 +180,7 @@ export default function MonitoringSystem() {
 						element={<GanttPage institutions={filteredInstitutions} topOffset={headerHeight} />}
 					/>
 
-					<Route path="/mapa" element={<MapPage />} />
+					<Route path="/mapa" element={<BrazilMap data={mapaDataCompleto} />} />
 				</Routes>
 			</Box>
 
