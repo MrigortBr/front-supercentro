@@ -1,24 +1,62 @@
-import { forwardRef } from "react";
-import { AppBar, Toolbar, Box, Typography, Tabs, Tab, Button, Chip } from "@mui/material";
-import { BarChart3, Download, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
-
-import { ViewType } from "../types";
+import { forwardRef, useEffect, useState } from "react";
+import { AppBar, Toolbar, Box, Typography, Tabs, Tab, Button, Chip, Tooltip } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
+import { BarChart3, Download, Settings, Calendar, Clock3, CalendarClock, CheckCircle2, MapPin, LogOut, User } from "lucide-react";
+import { useSession } from "../providers/session/page";
+import { api } from "../service";
 
 interface HeaderProps {
     institutionsCount: number;
     inProgressCount: number;
-    currentView: ViewType;
-    onViewChange: (view: ViewType) => void;
     onExport: () => void;
 }
 
 const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
     institutionsCount,
     inProgressCount,
-    currentView,
-    onViewChange,
     onExport,
 }, ref) {
+    const location = useLocation();
+    const navigate = useNavigate();
+    const { session, clearSession } = useSession();
+
+    const currentPath = location.pathname;
+    const isMapRoute = currentPath === "/mapa";
+    const isGanttRoute = currentPath === "/gantt";
+
+    const [remaining, setRemaining] = useState<number>(() =>
+        session ? Math.max(0, session.expiresAt - Date.now()) : 0
+    );
+
+    useEffect(() => {
+        if (!session) return;
+        const interval = setInterval(() => {
+            const ms = Math.max(0, session.expiresAt - Date.now());
+            setRemaining(ms);
+            if (ms === 0) {
+                api.setAuthToken(null);
+                clearSession();
+                navigate("/");
+            }
+        }, 1000);
+        return () => clearInterval(interval);
+    }, [session, clearSession, navigate]);
+
+    function formatCountdown(ms: number) {
+        const totalSec = Math.floor(ms / 1000);
+        const h = Math.floor(totalSec / 3600);
+        const m = Math.floor((totalSec % 3600) / 60);
+        const s = totalSec % 60;
+        const pad = (n: number) => String(n).padStart(2, "0");
+        return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+    }
+
+    function handleLogout() {
+        api.setAuthToken(null);
+        clearSession();
+        navigate("/");
+    }
+
     return (
         <Box ref={ref} sx={{ position: "sticky", top: 0, zIndex: (theme) => theme.zIndex.appBar }}>
             {/* HEADER */}
@@ -68,13 +106,10 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                         sx={{
                             display: "flex",
                             gap: { xs: 2, sm: 4 },
+                            alignItems: "center",
                         }}
                     >
-                        <Box
-                            sx={{
-                                textAlign: "center",
-                            }}
-                        >
+                        <Box sx={{ textAlign: "center" }}>
                             <Typography
                                 sx={{
                                     color: "#FFCD07",
@@ -95,11 +130,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                             </Typography>
                         </Box>
 
-                        <Box
-                            sx={{
-                                textAlign: "center",
-                            }}
-                        >
+                        <Box sx={{ textAlign: "center" }}>
                             <Typography
                                 sx={{
                                     color: "#FFCD07",
@@ -119,6 +150,63 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                                 Em andamento
                             </Typography>
                         </Box>
+
+                        {session && (
+                            <Box
+                                sx={{
+                                    display: "flex",
+                                    alignItems: "center",
+                                    gap: 1,
+                                    borderLeft: "1px solid rgba(255,255,255,0.3)",
+                                    pl: { xs: 1, sm: 2 },
+                                    ml: { xs: 0, sm: 1 },
+                                }}
+                            >
+                                <Tooltip title="Sessão expira em">
+                                    <Box sx={{ textAlign: "center", display: { xs: "none", sm: "block" } }}>
+                                        <Typography
+                                            sx={{
+                                                color: remaining < 5 * 60 * 1000 ? "#FF6B6B" : "#FFCD07",
+                                                fontWeight: 700,
+                                                fontSize: "0.875rem",
+                                                lineHeight: 1.2,
+                                                fontVariantNumeric: "tabular-nums",
+                                            }}
+                                        >
+                                            {formatCountdown(remaining)}
+                                        </Typography>
+                                        <Typography sx={{ color: "rgba(255,255,255,0.6)", fontSize: "0.65rem" }}>
+                                            Sessão
+                                        </Typography>
+                                    </Box>
+                                </Tooltip>
+
+                                <User size={18} color="rgba(255,255,255,0.8)" />
+
+                                <Box sx={{ display: { xs: "none", sm: "block" } }}>
+                                    <Typography sx={{ color: "white", fontSize: "0.875rem", fontWeight: 600, lineHeight: 1.2 }}>
+                                        {session.user.name}
+                                    </Typography>
+                                    <Typography sx={{ color: "rgba(255,255,255,0.7)", fontSize: "0.7rem" }}>
+                                        {session.user.email}
+                                    </Typography>
+                                </Box>
+
+                                <Tooltip title="Sair">
+                                    <Button
+                                        onClick={handleLogout}
+                                        sx={{
+                                            minWidth: 0,
+                                            p: 0.75,
+                                            color: "rgba(255,255,255,0.8)",
+                                            "&:hover": { color: "white", bgcolor: "rgba(255,255,255,0.1)" },
+                                        }}
+                                    >
+                                        <LogOut size={18} />
+                                    </Button>
+                                </Tooltip>
+                            </Box>
+                        )}
                     </Box>
                 </Toolbar>
             </AppBar>
@@ -136,15 +224,15 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                 }}
             >
                 <Tabs
-                    value={currentView}
-                    onChange={(_, value) => onViewChange(value)}
+                    value={currentPath}
+                    onChange={(_, value) => navigate(value)}
                     variant="scrollable"
                     scrollButtons="auto"
                     allowScrollButtonsMobile
                     sx={{ minHeight: { xs: 40, sm: 48 }, flexShrink: 1, minWidth: 0 }}
                 >
                     <Tab
-                        value="list"
+                        value="/instituicoes"
                         icon={<Settings size={18} />}
                         iconPosition="start"
                         label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Instituições</Box>}
@@ -152,23 +240,23 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                     />
 
                     <Tab
-                        value="gantt"
+                        value="/gantt"
                         icon={<Calendar size={18} />}
                         iconPosition="start"
                         label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Gantt</Box>}
                         sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
                     />
 
-                    {/* <Tab
-                        value="map"
+                    <Tab
+                        value="/mapa"
                         icon={<MapPin size={18} />}
                         iconPosition="start"
                         label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Mapa</Box>}
                         sx={{ minWidth: { xs: 48, sm: 90 }, minHeight: { xs: 40, sm: 48 }, px: { xs: 1, sm: 2 } }}
-                    /> */}
+                    />
                 </Tabs>
 
-                {currentView !== "map" && (
+                {!isMapRoute && (
                     <Button
                         variant="contained"
                         startIcon={<Download size={16} />}
@@ -181,7 +269,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                         }}
                     >
                         <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                            {currentView === "gantt" ? "Exportar Gantt" : "Exportar Instituições"}
+                            {isGanttRoute ? "Exportar Gantt" : "Exportar Instituições"}
                         </Box>
                         <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
                     </Button>
@@ -190,7 +278,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
 
             {/* GANTT LEGEND */}
 
-            {currentView === "gantt" && (
+            {isGanttRoute && (
                 <Box
                     sx={{
                         display: "flex",

@@ -1,5 +1,5 @@
 import axios from "axios";
-import { InstituicionListResponse } from "./type";
+import { InstituicionListResponse, LoginResponse } from "./type";
 import { Institution, InstitutionPhoto } from "../types";
 
 class Api {
@@ -13,6 +13,27 @@ class Api {
                 "Content-Type": "application/json",
             },
         });
+    }
+
+    setAuthToken(token: string | null) {
+        if (token) {
+            this.api.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        } else {
+            delete this.api.defaults.headers.common["Authorization"];
+        }
+    }
+
+    async login(email: string, password: string): Promise<LoginResponse> {
+        try {
+            const response = await this.api.post("/auth/login", { email, password });
+            return { status: true, ...response.data };
+        } catch (error: any) {
+            const status = error?.response?.status;
+            const message = status === 401 || status === 400 || status === 404
+                ? "E-mail e/ou senha incorretos"
+                : "Sistema SAH está temporariamente fora do ar!";
+            return { status: false, message };
+        }
     }
 
     async getInstituicions(page = 1, limit = 10) {
