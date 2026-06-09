@@ -72,38 +72,25 @@ export default function MonitoringSystem() {
 
 
 	const mapaData = filteredInstitutions.map((institution) => {
-		const activitiesWithDates = institution.activities.filter(
-			(a) => a.start_date && a.end_date
-		);
+		const { activities } = institution;
 
-		const avgProgress =
-			activitiesWithDates.length > 0
+		const percentual =
+			activities.length > 0
 				? Math.round(
-					activitiesWithDates.reduce((sum, activity) => {
-						const start = new Date(activity.start_date).getTime();
-						const end = new Date(activity.end_date).getTime();
+					activities.reduce((sum, a) => {
+						if (!a.start_date || !a.end_date) return sum;
+						const start = new Date(a.start_date).getTime();
+						const end = new Date(a.end_date).getTime();
 						const now = Date.now();
-
-						let progress = 0;
-
-						if (end <= start) progress = 100;
-						else if (now <= start) progress = 0;
-						else if (now >= end) progress = 100;
-						else {
-							progress = Math.round(
-								((now - start) / (end - start)) * 100
-							);
-						}
-
-						return sum + progress;
-					}, 0) / activitiesWithDates.length
+						if (end <= start) return sum + 100;
+						if (now <= start) return sum;
+						if (now >= end) return sum + 100;
+						return sum + Math.round(((now - start) / (end - start)) * 100);
+					}, 0) / activities.length
 				)
 				: 0;
 
-		return {
-			sigla: institution.state,
-			percentual: avgProgress,
-		};
+		return { sigla: institution.state, percentual };
 	});
 
 	const todasUFs = [
