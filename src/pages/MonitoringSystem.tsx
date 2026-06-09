@@ -83,7 +83,7 @@ export default function MonitoringSystem() {
 				ref={headerRef}
 				institutionsCount={institutions.length}
 				inProgressCount={statusCount["Em andamento"] || 0}
-				onExport={exportToPDF}
+			onExport={exportToPDF}
 			/>
 
 			{/* MAIN */}
