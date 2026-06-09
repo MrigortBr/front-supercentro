@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useInstitutions } from "../hooks/useInstitutions";
 import { exportInstitutionsPDF, exportGanttPDF } from "../utils/pdfExport";
@@ -16,8 +17,6 @@ import Footer from "../components/Footer";
 import InstitutionsListPage from "./InstitutionsListPage";
 import GanttPage from "./GanttPage";
 import MapPage from "./MapPage";
-
-import { ViewType } from "../types";
 
 export default function MonitoringSystem() {
     const {
@@ -46,7 +45,8 @@ export default function MonitoringSystem() {
         statusCount,
     } = useInstitutions();
 
-    const [currentView, setCurrentView] = useState<ViewType>("list");
+    const location = useLocation();
+    const isGanttRoute = location.pathname === "/gantt";
 
     const headerRef = useRef<HTMLDivElement>(null);
 
@@ -66,7 +66,7 @@ export default function MonitoringSystem() {
     }, []);
 
 	const exportToPDF = () => {
-		if (currentView === "gantt") exportGanttPDF(filteredInstitutions);
+		if (isGanttRoute) exportGanttPDF(filteredInstitutions);
 		else exportInstitutionsPDF(filteredInstitutions);
 	};
 
@@ -83,8 +83,6 @@ export default function MonitoringSystem() {
 				ref={headerRef}
 				institutionsCount={institutions.length}
 				inProgressCount={statusCount["Em andamento"] || 0}
-				currentView={currentView}
-				onViewChange={setCurrentView}
 				onExport={exportToPDF}
 			/>
 
@@ -94,38 +92,44 @@ export default function MonitoringSystem() {
 				sx={{
 					maxWidth: 1400,
 					mx: "auto",
-					p: currentView === "gantt" ? { xs: "6px", sm: 2 } : 3,
+					p: isGanttRoute ? { xs: "6px", sm: 2 } : 3,
 					flexGrow: 1,
 					width: "100%",
 				}}
 			>
-				{currentView === "list" && (
-					<InstitutionsListPage
-						filteredInstitutions={filteredInstitutions}
-						loading={loading}
-						overallAvgProgress={overallAvgProgress}
-						searchTerm={searchTerm}
-						onSearchChange={setSearchTerm}
-						filterStatus={filterStatus}
-						onFilterChange={setFilterStatus}
-						sortBy={sortBy}
-						onSortChange={setSortBy}
-						onNewInstitution={() => {
-							setEditingInstitution(null);
+				<Routes>
+					<Route
+						path="/"
+						element={
+							<InstitutionsListPage
+								filteredInstitutions={filteredInstitutions}
+								loading={loading}
+								overallAvgProgress={overallAvgProgress}
+								searchTerm={searchTerm}
+								onSearchChange={setSearchTerm}
+								filterStatus={filterStatus}
+								onFilterChange={setFilterStatus}
+								sortBy={sortBy}
+								onSortChange={setSortBy}
+								onNewInstitution={() => {
+									setEditingInstitution(null);
 
-							setShowForm(true);
-						}}
-						onView={handleView}
-						onEdit={handleEdit}
-						onDelete={handleDelete}
+									setShowForm(true);
+								}}
+								onView={handleView}
+								onEdit={handleEdit}
+								onDelete={handleDelete}
+							/>
+						}
 					/>
-				)}
 
-				{currentView === "gantt" && (
-					<GanttPage institutions={filteredInstitutions} topOffset={headerHeight} />
-				)}
+					<Route
+						path="/gantt"
+						element={<GanttPage institutions={filteredInstitutions} topOffset={headerHeight} />}
+					/>
 
-				{currentView === "map" && <MapPage />}
+					<Route path="/mapa" element={<MapPage />} />
+				</Routes>
 			</Box>
 
 			{/* FORM */}

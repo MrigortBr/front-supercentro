@@ -42,8 +42,6 @@ export type InstitutionEquipment = {
     created_at?: Date;
 };
 
-export type ViewType = "list" | "gantt" | "map";
-
 export type InstitutionPhoto = {
     id: number;
     id_instituicion: number;

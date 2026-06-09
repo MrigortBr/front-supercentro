@@ -1,24 +1,26 @@
 import { forwardRef } from "react";
 import { AppBar, Toolbar, Box, Typography, Tabs, Tab, Button, Chip } from "@mui/material";
+import { useLocation, useNavigate } from "react-router-dom";
 import { BarChart3, Download, Settings, Calendar, Clock3, CalendarClock, CheckCircle2 } from "lucide-react";
-
-import { ViewType } from "../types";
 
 interface HeaderProps {
     institutionsCount: number;
     inProgressCount: number;
-    currentView: ViewType;
-    onViewChange: (view: ViewType) => void;
     onExport: () => void;
 }
 
 const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
     institutionsCount,
     inProgressCount,
-    currentView,
-    onViewChange,
     onExport,
 }, ref) {
+    const location = useLocation();
+    const navigate = useNavigate();
+
+    const currentPath = location.pathname === "/" ? "/" : location.pathname;
+    const isMapRoute = currentPath === "/mapa";
+    const isGanttRoute = currentPath === "/gantt";
+
     return (
         <Box ref={ref} sx={{ position: "sticky", top: 0, zIndex: (theme) => theme.zIndex.appBar }}>
             {/* HEADER */}
@@ -136,15 +138,15 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                 }}
             >
                 <Tabs
-                    value={currentView}
-                    onChange={(_, value) => onViewChange(value)}
+                    value={currentPath}
+                    onChange={(_, value) => navigate(value)}
                     variant="scrollable"
                     scrollButtons="auto"
                     allowScrollButtonsMobile
                     sx={{ minHeight: { xs: 40, sm: 48 }, flexShrink: 1, minWidth: 0 }}
                 >
                     <Tab
-                        value="list"
+                        value="/"
                         icon={<Settings size={18} />}
                         iconPosition="start"
                         label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Instituições</Box>}
@@ -152,7 +154,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                     />
 
                     <Tab
-                        value="gantt"
+                        value="/gantt"
                         icon={<Calendar size={18} />}
                         iconPosition="start"
                         label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Gantt</Box>}
@@ -160,7 +162,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                     />
 
                     {/* <Tab
-                        value="map"
+                        value="/mapa"
                         icon={<MapPin size={18} />}
                         iconPosition="start"
                         label={<Box component="span" sx={{ fontSize: { xs: "0.65rem", sm: "0.875rem" } }}>Mapa</Box>}
@@ -168,7 +170,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                     /> */}
                 </Tabs>
 
-                {currentView !== "map" && (
+                {!isMapRoute && (
                     <Button
                         variant="contained"
                         startIcon={<Download size={16} />}
@@ -181,7 +183,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                         }}
                     >
                         <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                            {currentView === "gantt" ? "Exportar Gantt" : "Exportar Instituições"}
+                            {isGanttRoute ? "Exportar Gantt" : "Exportar Instituições"}
                         </Box>
                         <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
                     </Button>
@@ -190,7 +192,7 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
 
             {/* GANTT LEGEND */}
 
-            {currentView === "gantt" && (
+            {isGanttRoute && (
                 <Box
                     sx={{
                         display: "flex",
