@@ -2,7 +2,17 @@ import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 import Plotly from "plotly.js-dist-min";
 
-import { Institution } from "../types";
+import { Institution, Activity } from "../types";
+
+const calculateProgress = (activity: Activity): number => {
+    const start = new Date(activity.start_date).getTime();
+    const end = new Date(activity.end_date).getTime();
+    const now = Date.now();
+    if (end <= start) return 100;
+    if (now <= start) return 0;
+    if (now >= end) return 100;
+    return Math.round(((now - start) / (end - start)) * 100);
+};
 
 export const exportInstitutionsPDF = (filteredInstitutions: Institution[]) => {
     const doc = new jsPDF("p", "mm", "a4");
@@ -348,8 +358,8 @@ export const exportGanttPDF = (filteredInstitutions: Institution[]) => {
     drawTimeline(y);
     y += TL_H;
 
-    filteredInstitutions.forEach((inst) => {
-        if (y + INST_ROW_H > MAX_Y) {
+    filteredInstitutions.forEach((inst, instIndex) => {
+        if (instIndex > 0) {
             doc.addPage();
             drawPageHeader();
             y = PAGE_HDR_H + 4;
@@ -386,12 +396,15 @@ export const exportGanttPDF = (filteredInstitutions: Institution[]) => {
                 const ex = Math.min(Math.max(...xe), CHART_X + CHART_W);
                 const [sr, sg, sb] = statusColors[inst.status] || [100, 100, 100];
                 const bH = 5, bY = y + (INST_ROW_H - bH) / 2;
+                const avgProgress = validActs.length > 0
+                    ? Math.round(validActs.reduce((sum, a) => sum + calculateProgress(a), 0) / validActs.length)
+                    : 0;
                 doc.setFillColor(sr, sg, sb);
                 doc.roundedRect(sx, bY, Math.max(2, ex - sx), bH, 0.8, 0.8, "F");
                 doc.setTextColor(255, 255, 255);
                 doc.setFontSize(5.5);
                 doc.setFont("helvetica", "bold");
-                doc.text(inst.status, sx + 1.5, bY + bH - 1.5);
+                doc.text(`${inst.status} – ${avgProgress}%`, sx + 1.5, bY + bH - 1.5);
             }
         }
 
@@ -429,8 +442,30 @@ export const exportGanttPDF = (filteredInstitutions: Institution[]) => {
             if (sx !== null && ex !== null) {
                 const [ar, ag, ab] = actColors[activity.status] || [19, 81, 180];
                 const bH = 3.5, bY = y + (ACT_ROW_H - bH) / 2;
+                const barStartX = Math.max(sx, CHART_X);
+                const barEndX = Math.min(ex, CHART_X + CHART_W);
+                const barW = Math.max(1, barEndX - barStartX);
                 doc.setFillColor(ar, ag, ab);
-                doc.roundedRect(Math.max(sx, CHART_X), bY, Math.max(1, Math.min(ex, CHART_X + CHART_W) - Math.max(sx, CHART_X)), bH, 0.5, 0.5, "F");
+                doc.roundedRect(barStartX, bY, barW, bH, 0.5, 0.5, "F");
+
+                const progress = calculateProgress(activity);
+                const label = `${progress}%`;
+                doc.setFontSize(5);
+                doc.setFont("helvetica", "bold");
+                const labelW = doc.getTextWidth(label);
+                const LABEL_GAP = 1.5;
+                const textY = bY + bH / 2 + 1;
+
+                if (barEndX + LABEL_GAP + labelW <= CHART_X + CHART_W) {
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(label, barEndX + LABEL_GAP, textY);
+                } else if (barW >= labelW + 4) {
+                    doc.setTextColor(255, 255, 255);
+                    doc.text(label, barEndX - 1.5, textY, { align: "right" });
+                } else {
+                    doc.setTextColor(80, 80, 80);
+                    doc.text(label, barEndX + LABEL_GAP, textY);
+                }
             }
 
             y += ACT_ROW_H;

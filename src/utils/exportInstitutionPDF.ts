@@ -485,15 +485,15 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false, 
         y = checkPage(y, 22);
 
         // Section header
-        doc.setFillColor(248, 249, 250);
-        doc.setDrawColor(222, 226, 230);
-        doc.setLineWidth(0.35);
-        doc.roundedRect(M, y, CW, 8, 1.5, 1.5, "FD");
-        doc.setTextColor(73, 80, 87);
-        doc.setFontSize(9);
+        doc.setFillColor(235, 241, 252);
+        doc.setDrawColor(19, 81, 180);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(M, y, CW, 11, 2, 2, "FD");
+        doc.setTextColor(19, 81, 180);
+        doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
-        doc.text("Atividades e Cronograma", M + 4, y + 5.6);
-        y += 11;
+        doc.text("Atividades e Cronograma", M + CW / 2, y + 7.5, { align: "center" });
+        y += 14;
 
         institution.activities.forEach((activity) => {
             const actColor = actStatusColors[activity.status] || BLUE;
@@ -569,18 +569,20 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false, 
     // EQUIPAMENTOS
     // ════════════════════════════════════════════════════════
     if (institution.machine && institution.machine.length > 0) {
-        y = checkPage(y, 22);
+        doc.addPage();
+        drawContinuationHeader();
+        y = CONTENT_TOP;
 
         // Section header
-        doc.setFillColor(248, 249, 250);
-        doc.setDrawColor(222, 226, 230);
-        doc.setLineWidth(0.35);
-        doc.roundedRect(M, y, CW, 8, 1.5, 1.5, "FD");
-        doc.setTextColor(73, 80, 87);
-        doc.setFontSize(9);
+        doc.setFillColor(235, 241, 252);
+        doc.setDrawColor(19, 81, 180);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(M, y, CW, 11, 2, 2, "FD");
+        doc.setTextColor(19, 81, 180);
+        doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
-        doc.text("Equipamentos", M + 4, y + 5.6);
-        y += 11;
+        doc.text("Equipamentos", M + CW / 2, y + 7.5, { align: "center" });
+        y += 14;
 
         institution.machine.forEach((m) => {
             const chips: { text: string; color: [number, number, number] }[] = [];
@@ -621,17 +623,19 @@ function buildInstitutionDetailPDF(institution: Institution, withGantt = false, 
     // GALERIA DE FOTOS
     // ════════════════════════════════════════════════════════
     if (photos.length > 0) {
-        y = checkPage(y, 22);
+        doc.addPage();
+        drawContinuationHeader();
+        y = CONTENT_TOP;
 
-        doc.setFillColor(248, 249, 250);
-        doc.setDrawColor(222, 226, 230);
-        doc.setLineWidth(0.35);
-        doc.roundedRect(M, y, CW, 8, 1.5, 1.5, "FD");
-        doc.setTextColor(73, 80, 87);
-        doc.setFontSize(9);
+        doc.setFillColor(235, 241, 252);
+        doc.setDrawColor(19, 81, 180);
+        doc.setLineWidth(0.4);
+        doc.roundedRect(M, y, CW, 11, 2, 2, "FD");
+        doc.setTextColor(19, 81, 180);
+        doc.setFontSize(13);
         doc.setFont("helvetica", "bold");
-        doc.text("Galeria de Fotos", M + 4, y + 5.6);
-        y += 11;
+        doc.text("Galeria de Fotos", M + CW / 2, y + 7.5, { align: "center" });
+        y += 14;
 
         const GAP = 4;
         const THUMB = 40;
