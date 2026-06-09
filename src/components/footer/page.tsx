@@ -1,20 +1,21 @@
 "use client";
 
+import { Image } from "lucide-react";
 import { FooterContainer, FooterLeft, FooterRight, ImageWrapper } from "./styled";
 
 export default function Footer() {
     return (
         <FooterContainer>
-            <FooterLeft>© 2026 SAH - Sistema de Acompanhamento de Habilitações</FooterLeft>
+            <FooterLeft>© 2026 Sistema de Monitoramento - Super Centro Brasil</FooterLeft>
             <FooterRight>
                 <ImageWrapper>
-                    <img src="/especialista.png" alt="Agora tem especialistas" style={{ objectFit: "contain" }} />
+                    <img src="/especialista.png" alt="Agora tem especialistas" />
                 </ImageWrapper>
                 <ImageWrapper>
-                    <img src="/ministerio-semfundo.png" alt="Ministerio da saude" style={{ objectFit: "contain" }} />
+                    <img src="/ministerio.png" alt="Governo Federal" />
                 </ImageWrapper>
                 <ImageWrapper>
-                    <img src="/sus.png" alt="Governo Federal" style={{ objectFit: "contain" }} />
+                    <img src="/gov.jpeg" alt="Ministerio da saude" />
                 </ImageWrapper>
             </FooterRight>
         </FooterContainer>

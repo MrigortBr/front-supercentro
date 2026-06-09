@@ -8,7 +8,7 @@ export const Container = styled.section`
 
     overflow: hidden;
 
-    background: ${({ theme }) => theme.colors.greenBackground};
+    background: ${({ theme }) => theme.colors.blueBackground};
 
     display: flex;
 
@@ -82,7 +82,7 @@ export const GovLogo = styled.div`
     align-items: center;
     justify-content: center;
 
-    color: ${({ theme }) => theme.colors.greenBackground};
+    color: ${({ theme }) => theme.colors.blueBackground};
 
     font-size: 1.1rem;
     font-weight: 700;

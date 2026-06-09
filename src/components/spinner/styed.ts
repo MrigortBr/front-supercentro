@@ -37,7 +37,7 @@ export const LoadingSpinner = styled.div<LoadingContainerProps>`
 
     border: 0.35vw solid ${({ theme }) => theme.colors.grayUltraLight};
 
-    border-top: 0.35vw solid ${({ theme }) => theme.colors.greenBackground};
+    border-top: 0.35vw solid ${({ theme }) => theme.colors.blueBackground};
 
     animation: ${spin} 0.8s linear infinite;
 `;

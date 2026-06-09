@@ -3,6 +3,7 @@ export const theme = {
         greenDark: "#1a2e20",
         greenBackground: "#1b5e3b",
         blueBackground: "#3135ec",
+        blueLight: "#686ae6",
         blueBackgroundLight: "#6264ee",
         greenLight: "#2e7d52",
         greenUltraLight: "#28c56f",

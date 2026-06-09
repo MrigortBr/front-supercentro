@@ -21,7 +21,7 @@ export const Container = styled.section`
         top: 0;
         width: 0.3rem;
         height: 100%;
-        background: linear-gradient(180deg, ${({ theme }) => theme.colors.yellowVibrant}, ${({ theme }) => theme.colors.greenBackground});
+        background: linear-gradient(180deg, ${({ theme }) => theme.colors.yellowVibrant}, ${({ theme }) => theme.colors.blueBackground});
     }
 
     @media (max-width: 768px) {
@@ -42,7 +42,7 @@ export const Container = styled.section`
             width: 0.3rem;
             height: 100dvh;
             z-index: 40;
-            background: linear-gradient(180deg, ${({ theme }) => theme.colors.yellowVibrant}, ${({ theme }) => theme.colors.greenBackground});
+            background: linear-gradient(180deg, ${({ theme }) => theme.colors.yellowVibrant}, ${({ theme }) => theme.colors.blueBackground});
         }
     }
 `;
@@ -64,7 +64,7 @@ export const Eyebrow = styled.p`
     letter-spacing: 0.15em;
     text-transform: uppercase;
 
-    color: ${({ theme }) => theme.colors.greenLight};
+    color: ${({ theme }) => theme.colors.blueLight};
 
     margin-bottom: 0.2rem;
 `;
@@ -135,7 +135,7 @@ export const ProfileIcon = styled.div`
 
     border-radius: ${({ theme }) => theme.borderRadius.md};
 
-    background: ${({ theme }) => theme.colors.greenBackground};
+    background: ${({ theme }) => theme.colors.blueBackground};
 
     display: flex;
     align-items: center;
@@ -187,7 +187,7 @@ export const Input = styled.input`
     transition: 0.2s;
 
     &:focus {
-        border-color: ${({ theme }) => theme.colors.greenLight};
+        border-color: ${({ theme }) => theme.colors.blueLight};
         background: ${({ theme }) => theme.colors.white};
     }
 `;
@@ -198,7 +198,7 @@ export const ForgotPassword = styled.a`
     margin-left: auto;
     margin-bottom: 1.5rem;
 
-    color: ${({ theme }) => theme.colors.greenLight};
+    color: ${({ theme }) => theme.colors.blueLight};
 
     font-size: ${({ theme }) => theme.fontSizes.xs};
 
@@ -217,7 +217,7 @@ export const LoginButton = styled.button`
     border: none;
     border-radius: 0.8rem;
 
-    background: ${({ theme }) => theme.colors.greenBackground};
+    background: ${({ theme }) => theme.colors.blueBackground};
 
     color: ${({ theme }) => theme.colors.white};
 
@@ -229,7 +229,7 @@ export const LoginButton = styled.button`
     transition: 0.2s;
 
     &:hover {
-        background: ${({ theme }) => theme.colors.greenLight};
+        background: ${({ theme }) => theme.colors.blueLight};
         transform: translateY(-1px);
     }
 `;
@@ -302,7 +302,7 @@ export const GovLogo = styled.div`
     align-items: center;
     justify-content: center;
 
-    color: ${({ theme }) => theme.colors.greenBackground};
+    color: ${({ theme }) => theme.colors.blueBackground};
 
     font-size: 1.1rem;
     font-weight: 700;

@@ -21,14 +21,11 @@ export default function HeroPanel() {
                     <HeroLabel>Sistema em operação</HeroLabel>
 
                     <HeroTitle>
-                        SAH
+                        SUPER CENTRO
                         <br />
-                        <em>Oncologia</em>
                     </HeroTitle>
 
-                    <HeroSub>
-                        Sistema de Acompanhamento de Habilitações — gestão e monitoramento das habilitações oncológicas e novos serviços no SUS.
-                    </HeroSub>
+                    <HeroSub>Sistema de Monitoramento - Super Centro Brasil</HeroSub>
                 </Top>
                 {/* <Bottom>
                     <StatsRow>

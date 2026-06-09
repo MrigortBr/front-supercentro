@@ -30,7 +30,6 @@ function parseTokenExpiry(token: string): number {
         const payload = JSON.parse(atob(token.split(".")[1]));
         if (payload.exp) return payload.exp * 1000;
     } catch {}
-    // fallback: 1 hora a partir de agora
     return Date.now() + 60 * 60 * 1000;
 }
 
@@ -58,7 +57,7 @@ export default function LoginPanel() {
         const responseLogin = await api.login(email, password);
 
         if (!responseLogin.status) {
-            callMessage(responseLogin.message ?? "Sistema SAH está temporariamente fora do ar!", "error");
+            callMessage(responseLogin.message ?? "Sistema Super Centro está temporariamente fora do ar!", "error");
             setIsloading(false);
             return null;
         }
@@ -89,7 +88,7 @@ export default function LoginPanel() {
 
                     <Title>Entrar no sistema</Title>
 
-                    <Description>Use seu login institucional para acessar o SAH.</Description>
+                    <Description>Use seu login institucional para acessar o SUPER CENTRO.</Description>
                 </Header>
 
                 <Form>
@@ -115,7 +114,7 @@ export default function LoginPanel() {
                 </Form>
 
                 <Footer>
-                    <Version>SAH v1.0 · 2026</Version>
+                    <Version>SUPER CENTRO v1.0 · 2026</Version>
 
                     {/* <Links>
                         <a href="#">Suporte</a>
