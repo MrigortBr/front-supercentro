@@ -1,5 +1,6 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
+import Plotly from "plotly.js-dist-min";
 
 import { Institution } from "../types";
 
@@ -455,4 +456,42 @@ export const exportGanttPDF = (filteredInstitutions: Institution[]) => {
     }
 
     doc.save(`gantt-supercentro-${new Date().toISOString().slice(0, 10)}.pdf`);
+};
+
+export const exportMapPDF = async (): Promise<void> => {
+    const imgData = await (Plotly as any).toImage("brazil-map-plot", {
+        format: "png",
+        width: 1400,
+        height: 900,
+    }) as string;
+
+    const doc = new jsPDF("l", "mm", "a4");
+    const PW = doc.internal.pageSize.getWidth();
+    const PH = doc.internal.pageSize.getHeight();
+    const margin = 15;
+
+    doc.setFillColor(19, 81, 180);
+    doc.rect(0, 0, PW, 28, "F");
+    doc.setTextColor(255, 205, 7);
+    doc.setFontSize(15);
+    doc.setFont("helvetica", "bold");
+    doc.text("Mapa de Acompanhamento", margin, 12);
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(9);
+    doc.setFont("helvetica", "normal");
+    doc.text("Super Centro Brasil", margin, 20);
+    doc.setFontSize(8);
+    doc.text(`Emitido em: ${new Date().toLocaleDateString("pt-BR")}`, PW - margin, 20, { align: "right" });
+
+    const imgW = PW - margin * 2;
+    const imgH = PH - 28 - margin - 10;
+    doc.addImage(imgData, "PNG", margin, 31, imgW, imgH);
+
+    doc.setFillColor(248, 249, 250);
+    doc.rect(0, PH - 10, PW, 10, "F");
+    doc.setTextColor(120, 120, 120);
+    doc.setFontSize(7);
+    doc.text("Ministério da Saúde — DECAN © 2026 | Sistema de Monitoramento", PW / 2, PH - 3.5, { align: "center" });
+
+    doc.save(`mapa-supercentro-${new Date().toISOString().slice(0, 10)}.pdf`);
 };

@@ -200,6 +200,7 @@ export default function BrazilMap({ data }: Props) {
 
   return (
     <Plot
+      divId="brazil-map-plot"
       data={plotData}
       layout={PLOT_LAYOUT}
       config={PLOT_CONFIG}

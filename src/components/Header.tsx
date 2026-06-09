@@ -1,7 +1,7 @@
 import { forwardRef, useEffect, useState } from "react";
 import { AppBar, Toolbar, Box, Typography, Tabs, Tab, Button, Chip, Tooltip } from "@mui/material";
 import { useLocation, useNavigate } from "react-router-dom";
-import { BarChart3, Download, Settings, Calendar, Clock3, CalendarClock, CheckCircle2, MapPin, LogOut, User } from "lucide-react";
+import { BarChart3, Download, Settings, Calendar, Clock3, CalendarClock, CheckCircle2, MapPin, LogOut } from "lucide-react";
 import { useSession } from "../providers/session/page";
 import { api } from "../service";
 
@@ -256,25 +256,23 @@ const Header = forwardRef<HTMLDivElement, HeaderProps>(function Header({
                     />
                 </Tabs>
 
-                {!isMapRoute && (
-                    <Button
-                        variant="contained"
-                        startIcon={<Download size={16} />}
-                        onClick={onExport}
-                        sx={{
-                            bgcolor: "#168821",
-                            minWidth: { xs: 40, sm: "auto" },
-                            px: { xs: 1, sm: 2 },
-                            my: 1,
-                            "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
-                        }}
-                    >
-                        <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
-                            {isGanttRoute ? "Exportar Gantt" : "Exportar Instituições"}
-                        </Box>
-                        <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
-                    </Button>
-                )}
+                <Button
+                    variant="contained"
+                    startIcon={<Download size={16} />}
+                    onClick={onExport}
+                    sx={{
+                        bgcolor: "#168821",
+                        minWidth: { xs: 40, sm: "auto" },
+                        px: { xs: 1, sm: 2 },
+                        my: 1,
+                        "& .MuiButton-startIcon": { mr: { xs: 0.5, sm: 1 } },
+                    }}
+                >
+                    <Box component="span" sx={{ display: { xs: "none", sm: "inline" } }}>
+                        {isMapRoute ? "Exportar Mapa" : isGanttRoute ? "Exportar Gantt" : "Exportar Instituições"}
+                    </Box>
+                    <Box component="span" sx={{ display: { xs: "inline", sm: "none" } }}>PDF</Box>
+                </Button>
             </Box>
 
             {/* GANTT LEGEND */}

@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from "react";
 import { Routes, Route, useLocation } from "react-router-dom";
 
 import { useInstitutions } from "../hooks/useInstitutions";
-import { exportInstitutionsPDF, exportGanttPDF } from "../utils/pdfExport";
+import { exportInstitutionsPDF, exportGanttPDF, exportMapPDF } from "../utils/pdfExport";
 import {
     Box,
     Alert,
@@ -47,6 +47,7 @@ export default function MonitoringSystem() {
 
     const location = useLocation();
     const isGanttRoute = location.pathname === "/gantt";
+    const isMapRoute = location.pathname === "/mapa";
 
     const headerRef = useRef<HTMLDivElement>(null);
 
@@ -66,7 +67,8 @@ export default function MonitoringSystem() {
     }, []);
 
 	const exportToPDF = () => {
-		if (isGanttRoute) exportGanttPDF(filteredInstitutions);
+		if (isMapRoute) exportMapPDF();
+		else if (isGanttRoute) exportGanttPDF(filteredInstitutions);
 		else exportInstitutionsPDF(filteredInstitutions);
 	};
 

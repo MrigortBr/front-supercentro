@@ -1,6 +1,5 @@
 "use client";
 
-import { Image } from "lucide-react";
 import { FooterContainer, FooterLeft, FooterRight, ImageWrapper } from "./styled";
 
 export default function Footer() {
