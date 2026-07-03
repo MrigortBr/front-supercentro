@@ -44,9 +44,7 @@ export default function Footer() {
                         "@media (max-width:480px)": { width: "100%", justifyContent: "center" },
                     }}
                 >
-                    {/* <img src="/especialista.png" width={172} height={91} alt="Agora tem Especialistas" />
-                    <img src="/sus.png" width={80} height={43} alt="SUS 35 Anos" />
-                    <img src="/ministerio-semfundo.png" width={289} height={99} alt="Ministério da Saúde" loading="eager" /> */}
+                    <img src="/ministeriologo.png" width={172} height={91} alt="Ministério da Saúde" loading="eager" />
                 </Box>
             </Box>
 
